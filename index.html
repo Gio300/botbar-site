@@ -14,7 +14,7 @@
 <header class="nav">
   <a class="brand" href="#top"><img class="logo-mark" src="assets/brand/botbar-mark.svg" alt="" width="30" height="23"> BotBar</a>
   <button class="bbface" id="bbface" aria-label="BotBar bot, tap me"><svg class="bb-svg" viewBox="0 0 200 112" aria-hidden="true"><defs><linearGradient id="bbf" x1="0" y1=".3" x2="1" y2=".7"><stop offset="0" stop-color="#14e6ee"/><stop offset=".55" stop-color="#4b7cff"/><stop offset="1" stop-color="#9b2cf5"/></linearGradient></defs><path class="bb-body" fill="url(#bbf)" d="M45 36H110Q119 36 124 28L134 14Q139 6 148 6H180Q194 6 192 20L182 92Q180 106 166 106H26Q10 106 15 92L33 46Q37 36 45 36Z"/><rect class="bb-visor" x="34" y="44" width="146" height="28" rx="9" fill="#111018"/><g class="bb-eyes"><rect class="bb-pill" x="70" y="48" width="11" height="20" rx="5.5" fill="#fff"/><path class="bb-wink" d="M128 64L146 53" stroke="#fff" stroke-width="9" stroke-linecap="round"/></g><path class="bb-mouth" d="M101 83Q113 91 126 81" fill="none" stroke="#111018" stroke-width="4.5" stroke-linecap="round"/></svg><span class="bb-say"></span></button>
-  <nav><a href="#route">How it works</a><a href="#store">Store</a><a href="#names">Names</a><a href="#demo">Try it</a><a href="#watch">Watch</a><a href="#download">Download</a></nav>
+  <nav><a href="#route">How it works</a><a href="#demo">Try it</a><a href="#store">Store</a><a href="#names">Names</a><a href="#watch">Watch</a><a href="#download">Download</a></nav>
   <a class="btn sm" href="/download/botbar-keyboard.apk" download>Download</a>
 </header>
 
@@ -29,7 +29,13 @@
       <span class="fine">Android APK · Play Store coming soon</span>
     </div>
   </div>
-  <div class="hero-art reveal delay"><img src="assets/img/botbar-hub.webp" alt="BotBar keyboard at the center, synced with AI bots, apps and a browser" fetchpriority="high"></div>
+  <div class="hero-kb reveal delay" aria-label="The BotBar keyboard"><div class="hk">
+ <div class="hk-top"><span title="clipboard">📋</span><span class="hk-sug">Next on the ladder: Kloudy Browser</span><span title="mic">🎙</span><span title="voice">🔊</span></div>
+ <div class="hk-icons"><span>🔍</span><span>☁</span><span class="on">🤖</span><span>▦</span><span>🖼</span><span>📷</span><span>📞</span><span>💬</span><span>＋</span></div>
+ <div class="hk-tabs"><span>Apps</span><span class="on">Bots</span><span class="hk-my">My bots</span></div>
+ <div class="hk-rows"><div><b>q</b><b>w</b><b>e</b><b>r</b><b>t</b><b>y</b><b>u</b><b>i</b><b>o</b><b>p</b></div><div><b>a</b><b>s</b><b>d</b><b>f</b><b>g</b><b>h</b><b>j</b><b>k</b><b>l</b></div><div><b class="w">⇧</b><b>z</b><b>x</b><b>c</b><b>v</b><b>b</b><b>n</b><b>m</b><b class="w">⌫</b></div><div><b class="w">?123</b><b>,</b><b class="sp">☁ Kloudy</b><b>.</b><b class="w go">↵</b></div></div>
+ <div class="hk-duo"><span><i class="g">G</i>Grok Bot</span><span><i class="m">M</i>Muse</span></div>
+</div><img class="hk-real" src="assets/shots/kb-land.webp" alt="Real BotBar keyboard screenshot (landscape)" loading="lazy"><p class="fine">Top: the keyboard UI. Below: a real capture.</p></div>
   <div class="scroll-cue">Scroll to see how it works <span>↓</span></div>
 </section>
 
@@ -51,15 +57,31 @@
     <div class="pair" id="rmode"><button class="chip active" data-m="headless">Headless</button><button class="chip" data-m="visual">Visual</button></div>
     <div class="rv headless on" id="rvHeadless"></div>
     <div class="rv visual" id="rvVisual"></div>
+    <figure class="rshot" id="rShot"><img id="rShotImg" src="assets/shots/voice-listen.webp" alt="Real keyboard screen for this step"><figcaption id="rShotCap">real screen</figcaption></figure>
     <div class="result-card" id="resultCard"><p class="plab">produced result</p><h4 id="resTitle"></h4><ul id="resList"></ul><span class="inj" id="resInj"></span></div>
    </div>
   </div>
   <div class="route-steps" id="routeSteps"></div>
  </div>
 </section>
-
-<section class="sec-store" id="store"><div class="sec-head reveal"><p class="kick">s t o r e</p><h2>Grab a bot.</h2><p>Ready-made bots you can drop into the keyboard today.</p></div>
- <div class="sgrid wide reveal"><div class="sc"><b>Quick Reply</b><span>Drafts replies in any chat.</span><a href="#placeholder-quick-reply">Get</a></div><div class="sc"><b>Model Scout</b><span>Picks the best AI for the job.</span><a href="#placeholder-model-scout">Get</a></div><div class="sc"><b>String Keeper</b><span>Saves snippets you reuse.</span><a href="#placeholder-string-keeper">Get</a></div></div></section>
+<section class="sec-demo" id="demo"><div class="sec-head reveal"><p class="kick">t r y &nbsp; i t</p><h2>Push the button. Say it.</h2><p>Watch BotBar take a spoken request and run it across Muse, Grok Bot, your apps and Kloudy Browser.</p></div>
+ <div class="demo reveal">
+  <div class="d-phone demo-phone" id="demoPhone"><div class="scr vph"><div class="vph-poster"><span class="demo-tag">demo</span><button class="yplay" id="vphPlay" aria-label="Demo video coming soon">▶</button><p>Demo video coming soon</p></div></div></div>
+  <div class="dm-side"><p class="plab">In the video</p><ul class="dm-caps"><li>Pay bills across apps and adjust budgets</li><li>Find the best TV deal</li><li>Website, app, email and social in one run</li><li>Muse and Grok Bot plan a week</li><li>Make a video for a story</li><li>Reserve a bot name</li><li>“Kloudy let me know your Grok Bot was full on usage, so I'm taking the handoff from here and finishing it up.”</li></ul><p class="fine" id="dmNote"></p></div>
+ </div></section>
+<section class="sec-store" id="store"><div class="sec-head reveal"><p class="kick">s t o r e</p><h2>Grab a bot.</h2><p>The same bots you see in the keyboard's Bots tab. Tap one to add it.</p></div>
+ <div class="kstore reveal"><div class="kdark"><div class="ktabs"><span>Apps</span><span class="on">Bots</span></div><div class="kgrid"><a class="kt" href="#placeholder-bot-pass"><img src="assets/bots/premade_pass.svg" alt=""><b>Pass</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-resume"><img src="assets/bots/premade_resume.svg" alt=""><b>Resume</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-job_search"><img src="assets/bots/premade_job_search.svg" alt=""><b>Job Search</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-selling"><img src="assets/bots/premade_selling.svg" alt=""><b>Selling</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-craigs"><img src="assets/bots/premade_craigs.svg" alt=""><b>Craigs</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-ali"><img src="assets/bots/premade_ali.svg" alt=""><b>Ali Bot</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-marketplace"><img src="assets/bots/premade_marketplace.svg" alt=""><b>Marketplace</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-tiktok"><img src="assets/bots/premade_tiktok.svg" alt=""><b>TikTok</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-tot"><img src="assets/bots/premade_tot.svg" alt=""><b>Tot Bot</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-fact"><img src="assets/bots/premade_fact.svg" alt=""><b>Fact Bot</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-build"><img src="assets/bots/premade_build.svg" alt=""><b>Build your own</b><span>by BotBoozle</span></a></div></div><figure class="shotf"><img src="assets/shots/bots-store.webp" alt="Bots tab in the BotBar keyboard on Android" loading="lazy"><figcaption>Real Bots tab, Android emulator</figcaption></figure></div></section>
+<section class="devices" id="devices"><div class="dv-stick">
+ <div class="dv-head"><p class="kick">e v e r y &nbsp; s c r e e n</p><h2 id="dvTitle">Phone.</h2><p id="dvLine">The keyboard you already type on.</p></div>
+ <div class="dv-track" id="dvTrack">
+  <div class="dv"><div class="d-phone"><div class="scr"><div class="mc"><span>Muse · reading email</span><span>Grok Bot · image ready</span><span>Browser · 4 sites done</span></div><div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div></div></div></div>
+  <div class="dv"><div class="d-glasses"><div class="lens l"><div class="hud"><span>Muse · “3 new emails”</span><span>☁ say it</span></div></div><div class="bridge"></div><div class="lens r"><div class="hud"><span>Grok Bot · route ready</span></div></div></div></div>
+  <div class="dv"><div class="d-watch"><div class="band t"></div><div class="face"><div class="w-cards"><span>☁</span><span>Muse ✓</span><span>Grok Bot …</span></div></div><div class="band b"></div></div></div>
+  <div class="dv"><div class="d-laptop"><div class="lid"><div class="scr wide"><div class="tiles4"><span>Muse</span><span>Grok Bot</span><span>App</span><span>Browser</span></div><div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div></div></div><div class="base"></div></div></div>
+  <div class="dv"><div class="d-tablet"><div class="scr"><div class="mc"><span>Muse · reading email</span><span>Grok Bot · image ready</span><span>Browser · 4 sites done</span></div><div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div></div></div></div>
+ </div>
+ <div class="dv-dots" id="dvDots"></div>
+</div></section>
 
 <section class="sec-vbar" id="video-bar"><div class="sec-head reveal"><p class="kick">v i d e o &nbsp; b a r</p><h2>Make video from the keys.</h2><p>AIVid, Imagine and Google Flow sit on the keyboard, with room for your own buttons.</p></div>
  <div class="vbar-wrap reveal">
@@ -103,35 +125,11 @@
 <section class="sec-patent" id="patent"><div class="sec-head reveal"><p class="kick">p a t e n t &nbsp; p e n d i n g</p><h2>Built different. Protected.</h2><p>The way BotBar links one bot name to your keyboard, browser, apps and BotBoozle is ours, and it's patent pending.</p></div>
  <div class="pat reveal"><div class="sc"><b>One name</b><span>Your bot goes by one name everywhere.</span></div><div class="sc"><b>Everything linked</b><span>Keyboard, browser, apps and BotBoozle, together.</span></div><div class="sc"><b>Patent pending</b><span>Only on BotBar.</span></div></div></section>
 
-<section class="sec-demo" id="demo"><div class="sec-head reveal"><p class="kick">t r y &nbsp; i t</p><h2>Push the button. Say it.</h2><p>Tap the mic, speak or type, and watch BotBar run it. Demo only, nothing leaves this page.</p></div>
- <div class="demo reveal">
-  <div class="d-phone demo-phone" id="demoPhone"><div class="scr">
-    <div class="dm-out" id="dmOut"><p class="dm-hint">Tap the mic or pick an example.</p></div>
-    <div class="dm-in"><input id="dmText" placeholder="Ask BotBar…" aria-label="Type a request"><button id="dmMic" class="dm-mic" aria-label="Speak">🎙</button><button id="dmGo" class="dm-go" aria-label="Run">➤</button></div>
-    <div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div>
-  </div></div>
-  <div class="dm-side"><p class="plab">Examples</p><div class="dm-chips"><button class="chip ex" data-i="0">Grok, let's do bills day: pay my bills and fix my budget</button><button class="chip ex" data-i="1">I have a bot idea: build it, name it and put it in the store</button><button class="chip ex" data-i="2">Muse, pay this bill in my app</button><button class="chip ex" data-i="3">Find the best deal on a 65-inch TV and text it to me</button><button class="chip ex" data-i="4">Pull my order from the app, check the website and my email, and post an update</button><button class="chip ex" data-i="5">Muse and Grok Bot, plan my week</button><button class="chip ex" data-i="6">Make a video of this and drop it in my story</button><button class="chip ex" data-i="7">Reserve the name mybot.botbar</button></div><p class="fine" id="dmNote"></p></div>
- </div></section>
 
-<section class="devices" id="devices"><div class="dv-stick">
- <div class="dv-head"><p class="kick">e v e r y &nbsp; s c r e e n</p><h2 id="dvTitle">Phone.</h2><p id="dvLine">The keyboard you already type on.</p></div>
- <div class="dv-track" id="dvTrack">
-  <div class="dv"><div class="d-phone"><div class="scr"><div class="mc"><span>Muse · reading email</span><span>Grok Bot · image ready</span><span>Browser · 4 sites done</span></div><div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div></div></div></div>
-  <div class="dv"><div class="d-glasses"><div class="lens l"><div class="hud"><span>Muse · “3 new emails”</span><span>☁ say it</span></div></div><div class="bridge"></div><div class="lens r"><div class="hud"><span>Grok Bot · route ready</span></div></div></div></div>
-  <div class="dv"><div class="d-watch"><div class="band t"></div><div class="face"><div class="w-cards"><span>☁</span><span>Muse ✓</span><span>Grok Bot …</span></div></div><div class="band b"></div></div></div>
-  <div class="dv"><div class="d-laptop"><div class="lid"><div class="scr wide"><div class="tiles4"><span>Muse</span><span>Grok Bot</span><span>App</span><span>Browser</span></div><div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div></div></div><div class="base"></div></div></div>
-  <div class="dv"><div class="d-tablet"><div class="scr"><div class="mc"><span>Muse · reading email</span><span>Grok Bot · image ready</span><span>Browser · 4 sites done</span></div><div class="mk"><div class="mk-bar"><i></i><i></i><i></i><i></i></div><div class="mk-keys"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="cl">☁</b><b></b><b></b><b></b><b></b><b></b></div></div></div></div></div>
- </div>
- <div class="dv-dots" id="dvDots"></div>
-</div></section>
+
 <section class="watch" id="watch">
-  <div class="sec-head reveal"><p class="kick">m e d i a</p><h2>watch it.</h2><p>Press play. Short clips of BotBar at work.</p></div>
-  <div class="vrow reveal">
-    <figure class="vid"><img src="assets/img/tandem-turns.webp" alt="" loading="lazy"><span class="play">▶</span><figcaption>Two AIs, one key</figcaption></figure>
-    <figure class="vid"><img src="assets/img/tandem-app-driven.webp" alt="" loading="lazy"><span class="play">▶</span><figcaption>Muse drives an app</figcaption></figure>
-    <figure class="vid"><img src="assets/img/tandem-browser.webp" alt="" loading="lazy"><span class="play">▶</span><figcaption>Kloudy Browser gathers data</figcaption></figure>
-    <figure class="vid"><img src="assets/img/tandem-media.webp" alt="" loading="lazy"><span class="play">▶</span><figcaption>Generate and inject</figcaption></figure>
-  </div>
+  <div class="sec-head reveal"><p class="kick">m e d i a</p><h2>You Need a Bot.</h2><p>The three-part series. Press play. (Placeholder spots; final cuts coming.)</p></div>
+  <div class="vrow3 reveal"><figure class="yv"><video controls preload="none" playsinline poster="assets/video/app-vs-bot.jpg" src="assets/video/app-vs-bot.mp4"></video><button class="yplay" aria-label="Play App vs bot">▶</button><figcaption>App vs bot</figcaption></figure><figure class="yv"><video controls preload="none" playsinline poster="assets/video/office-desk.jpg" src="assets/video/office-desk.mp4"></video><button class="yplay" aria-label="Play Office desk conversation">▶</button><figcaption>Office desk conversation</figcaption></figure><figure class="yv"><video controls preload="none" playsinline poster="assets/video/home-visit.jpg" src="assets/video/home-visit.mp4"></video><button class="yplay" aria-label="Play Home visit and hospital">▶</button><figcaption>Home visit and hospital</figcaption></figure></div>
 <div class="close-cta"><h3>be first to try it.</h3><a class="btn" href="#download">Get the batch</a></div></section>
 
 <footer><img class="logo-mark" src="assets/brand/botbar-mark.svg" alt="BotBar" width="36" height="28"><br>© 2026 BotBar · The Kloudy Keyboard</footer>
@@ -147,8 +145,8 @@
   <label><input type="checkbox" checked data-href="#placeholder-botboozle"> BotBoozle</label>
   <label><input type="checkbox" checked data-href="#placeholder-kloudy-browser"> Kloudy Browser</label>
   <a class="btn" id="dlBatch" href="#placeholder-batch">Download batch (<span id="dlN">6</span>)</a><p class="fine">Placeholder links for now.</p></div>
-<div class="panel" id="pStore" role="dialog" aria-label="Store"><button class="px" aria-label="Close">×</button><h3>Bot store</h3><p class="pnote">Bots you can grab today. More coming soon.</p>
-  <div class="sgrid"><div class="sc"><b>Quick Reply</b><span>Drafts replies in any chat.</span><a href="#placeholder-quick-reply">Get</a></div><div class="sc"><b>Model Scout</b><span>Picks the best AI for the job.</span><a href="#placeholder-model-scout">Get</a></div><div class="sc"><b>String Keeper</b><span>Saves snippets you reuse.</span><a href="#placeholder-string-keeper">Get</a></div></div></div>
+<div class="panel" id="pStore" role="dialog" aria-label="Store"><button class="px" aria-label="Close">×</button><h3>Bot store</h3><p class="pnote">Placeholder bots from the keyboard's Bots tab. More coming soon.</p>
+  <div class="kdark"><div class="ktabs"><span>Apps</span><span class="on">Bots</span></div><div class="kgrid"><a class="kt" href="#placeholder-bot-pass"><img src="assets/bots/premade_pass.svg" alt=""><b>Pass</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-resume"><img src="assets/bots/premade_resume.svg" alt=""><b>Resume</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-job_search"><img src="assets/bots/premade_job_search.svg" alt=""><b>Job Search</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-selling"><img src="assets/bots/premade_selling.svg" alt=""><b>Selling</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-craigs"><img src="assets/bots/premade_craigs.svg" alt=""><b>Craigs</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-ali"><img src="assets/bots/premade_ali.svg" alt=""><b>Ali Bot</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-marketplace"><img src="assets/bots/premade_marketplace.svg" alt=""><b>Marketplace</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-tiktok"><img src="assets/bots/premade_tiktok.svg" alt=""><b>TikTok</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-tot"><img src="assets/bots/premade_tot.svg" alt=""><b>Tot Bot</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-fact"><img src="assets/bots/premade_fact.svg" alt=""><b>Fact Bot</b><span>by BotBoozle</span></a><a class="kt" href="#placeholder-bot-build"><img src="assets/bots/premade_build.svg" alt=""><b>Build your own</b><span>by BotBoozle</span></a></div></div></div>
 <div class="panel" id="pGen" role="dialog" aria-label="Generate"><button class="px" aria-label="Close">×</button><h3>Make a bot</h3>
   <div class="grow"><p><b>Simple bots</b> are built right in the keyboard.</p><a class="btn sm" href="#placeholder-build-in-keyboard">Build in keyboard</a></div>
   <div class="grow"><p><b>Heavy bots</b> are built in BotBoozle.</p><a class="btn sm" href="#placeholder-botboozle-builder">Open BotBoozle</a></div></div>

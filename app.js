@@ -100,7 +100,7 @@ const S=[
    ["Sell it.","Your bot lands in the BotBar store at the price you pick.",[1,2,3,4],"done"]],
   cards:[[1,"BotBoozle","generating your bot"],[2,"GoDaddy","name found · bought"],[3,"Airo","website ready"],[4,"BotBar store","listed at $4.99"]]}];
 const tot=S.reduce((a,x)=>a+x.st.length,0),steps=$('#routeSteps');for(let i=0;i<tot;i++)steps.appendChild(document.createElement('i'));
-sec.style.height=(tot*85+100)+'vh';
+sec.style.height='auto';sec.classList.add('loop');const SH=[['voice-listen','Grok voice from the keyboard'],['cc-talk','Apps moving together'],['headless-cards','Headless cards while bots work'],['browser-ime','Kloudy Browser, keyboard on top'],['cc-takeover','Muse takes the handoff'],['headless-result','Produced result'],['together','Say the idea'],['bots-home','BotBoozle generates it'],['bots-reserved','Name reserved'],['mock-bot','Bot page in Kloudy Browser'],['bots-store','Listed in the store']];const DUR=3200,t0=performance.now();let pin=0;
 const H=$('#rvHeadless'),V=$('#rvVisual'),rc=$('#resultCard'),bub=$('#rBubble');let cs=-1,cg=-1;
 const load=k=>{const x=S[k];$('#rKick').innerHTML=x.kick;
  sec.querySelectorAll('.nd').forEach(n=>{const i=+n.dataset.n;if(i>4)return;const t=n.querySelectorAll('text');t[0].textContent=x.nodes[i][0];t[1].textContent=x.nodes[i][1]});
@@ -109,7 +109,7 @@ const load=k=>{const x=S[k];$('#rKick').innerHTML=x.kick;
  const cards=x.cards.map(c=>`<div class="rc" data-s="${c[0]}"><b>${c[1]}</b><span>${c[2]}</span><i></i></div>`).join('');
  H.innerHTML=cards+(k==0?'<div class="rc warn" data-s="99"><b>Grok Bot</b><span>usage limit reached</span><i></i></div>':'');
  V.innerHTML=x.cards.map(c=>`<div class="rt" data-s="${c[0]}"><b>${c[1]}</b><em></em></div>`).join('')+(k==0?'<div class="rt warn" data-s="99"><b>Grok Bot · limit</b><em></em></div>':'')};
-const tick=()=>{const r=sec.getBoundingClientRect(),p=Math.max(0,Math.min(.9999,-r.top/(r.height-innerHeight)));const f=p*tot,g=Math.floor(f),sub=f-g;
+const tick=()=>{const p=((performance.now()-t0)/(DUR*tot))%1;const f=p*tot,g=Math.floor(f),sub=f-g;
  let k=0,j=g;while(j>=S[k].st.length){j-=S[k].st.length;k++}
  if(k!==cs){cs=k;load(k)}const x=S[k],st=x.st[j],act=st[2],ev=st[3]||'',last=j==x.st.length-1;
  sec.querySelectorAll('.nd').forEach(n=>{const i=+n.dataset.n;n.classList.toggle('on',i==0||act.includes(i)||(i==5&&last))});
@@ -124,10 +124,10 @@ const tick=()=>{const r=sec.getBoundingClientRect(),p=Math.max(0,Math.min(.9999,
  rc.classList.toggle('on',last||j>=x.st.length-2);rc.classList.toggle('done',last);
  rc.querySelectorAll('li').forEach((li,i)=>li.classList.toggle('on',last||i<j-1));
  [...steps.children].forEach((d,i)=>d.classList.toggle('on',i<=g));
- if(g!==cg){cg=g;$('#rTitle').textContent=st[0];$('#routeLine').textContent=st[1];$('#rTitle').animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.2,.8,.2,1)'})}};
+ if(g!==cg){cg=g;const sh=SH[g];if(sh){$('#rShotImg').src='assets/shots/'+sh[0]+'.webp';$('#rShotCap').textContent='real screen · '+sh[1]}if(!pin){const vis=g%2==1;$$('#rmode .chip').forEach(x=>x.classList.toggle('active',(x.dataset.m=='visual')==vis));H.classList.toggle('on',!vis);V.classList.toggle('on',vis)}$('#rTitle').textContent=st[0];$('#routeLine').textContent=st[1];$('#rTitle').animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.2,.8,.2,1)'})}};
 bub.querySelector('span').textContent="Kloudy let me know your Grok Bot was full on usage, so I'm taking the handoff from here and finishing it up.";
-addEventListener('scroll',tick,{passive:true});addEventListener('resize',tick);tick();
-$$('#rmode .chip').forEach(c=>c.onclick=()=>{$$('#rmode .chip').forEach(x=>x.classList.toggle('active',x==c));H.classList.toggle('on',c.dataset.m=='headless');V.classList.toggle('on',c.dataset.m=='visual')});
+const loop=()=>{tick();requestAnimationFrame(loop)};requestAnimationFrame(loop);
+$$('#rmode .chip').forEach(c=>c.onclick=()=>{pin=1;setTimeout(()=>pin=0,8000);$$('#rmode .chip').forEach(x=>x.classList.toggle('active',x==c));H.classList.toggle('on',c.dataset.m=='headless');V.classList.toggle('on',c.dataset.m=='visual')});
 const od=$('#openDl');if(od)od.onclick=()=>$('#abar button[data-p=pDl]').click();
 })();
 // ---- bot name search (placeholder) ----
@@ -148,29 +148,7 @@ addEventListener('scroll',tick,{passive:true});addEventListener('resize',tick);t
 // ---- playable video placeholders ----
 $$('.vid').forEach(v=>{v.appendChild(Object.assign(document.createElement('span'),{className:'bar'}));v.tabIndex=0;v.setAttribute('role','button');
  const t=()=>{const on=!v.classList.contains('playing');$$('.vid').forEach(x=>x.classList.remove('playing'));if(on){void v.offsetWidth;v.classList.add('playing')}};v.onclick=t;v.onkeydown=e=>(e.key=='Enter'||e.key==' ')&&(e.preventDefault(),t())});
-// ---- interactive phone demo (mic / chips / typed; no backend) ----
-(()=>{const out=$('#dmOut');if(!out)return;const txt=$('#dmText'),mic=$('#dmMic'),note=$('#dmNote');
-const EX=[
- {q:"Grok, let's do bills day: pay my bills and fix my budget",k:"bills day pay budget grok voice money forgot",steps:["Grok · voice chat started from the keyboard","Power, phone and card apps · paying 3 bills","Budget · trimmed dining by voice","Grok Bot · usage limit reached","Muse · took the handoff, finishing up"],r:"Bills paid, budget updated, 2 forgotten bills caught."},
- {q:"I have a bot idea: build it, name it and put it in the store",k:"bot idea build generate name store website godaddy airo",steps:["BotBoozle · generating your bot","GoDaddy · finding and buying the name","Airo · setting up the bot's website","BotBar store · listing it at your price"],r:"Your bot is live in the BotBar store."},
- {q:"Muse, pay this bill in my app",k:"pay bill app muse",steps:["Muse · opening your billing app","App · finding the open bill","Keyboard · filling sign-in (AI never sees it)","App · confirming payment"],r:"Bill paid. Receipt saved to Notes."},
- {q:"Find the best deal on a 65-inch TV and text it to me",k:"best deal 65 inch tv text price",steps:["Kloudy Browser · checking 5 stores","Browser · comparing prices","Grok Bot · picking the best deal","Messages · drafting your text"],r:"Best deal found and texted to you."},
- {q:"Pull my order from the app, check the website and my email, and post an update",k:"order app website email post update",steps:["App · pulling your order","Kloudy Browser · checking the tracking page","Email · finding the shipping notice","Social · drafting the update"],r:"Update posted with your order status."},
- {q:"Muse and Grok Bot, plan my week",k:"muse grok plan week calendar",steps:["Muse · “Let's start with your calendar.”","Grok Bot · “I'll add the gym and errands.”","Muse · “Moving Friday's call to fit.”","Grok Bot · “Week drafted.”"],r:"Your week is planned, taking turns."},
- {q:"Make a video of this and drop it in my story",k:"video make story clip aivid",steps:["Grok Bot · generating a clip","AIVid · trimming and captioning","Keyboard · opening your story","App · inserting the video"],r:"Video dropped into your story."},
- {q:"Reserve the name mybot.botbar",k:"reserve name mybot botbar",steps:["Store · searching mybot.botbar","Store · name available","Store · holding it for you","Store · linking to keyboard, browser, apps"],r:"mybot.botbar reserved (demo)."}];
-const words=t=>t.toLowerCase().match(/[a-z0-9]+/g)||[];
-const match=t=>{const w=new Set(words(t));let best=0,bs=-1;EX.forEach((e,i)=>{const kw=words(e.q+" "+e.k);const sc=kw.filter(x=>w.has(x)).length/Math.sqrt(kw.length);if(sc>bs){bs=sc;best=i}});return best};
-let run=0;
-const play=(i,said)=>{const id=++run,e=EX[i];$$('.dm-chips .ex').forEach((c,k)=>c.classList.toggle('active',k==i));
- out.innerHTML=`<div class="dm-q">“${(said||e.q).replace(/</g,'&lt;')}”</div>${said&&said!==e.q?`<div class="dm-m">closest: ${e.q}</div>`:''}`+e.steps.map(s=>`<div class="rc"><b>${s}</b><i></i></div>`).join('')+`<div class="dm-r">✦ ${e.r}</div>`;
- const cs=[...out.querySelectorAll('.rc')],r=out.querySelector('.dm-r');let k=0;
- const step=()=>{if(id!==run)return;cs.forEach((c,j)=>{c.classList.toggle('done',j<k);c.classList.toggle('run',j==k)});if(k<cs.length){k++;setTimeout(step,900)}else r.classList.add('on')};step();};
-$$('.dm-chips .ex').forEach(c=>c.onclick=()=>{txt.value=c.textContent;play(+c.dataset.i)});
-const go=()=>{const t=txt.value.trim();if(t)play(match(t),t)};$('#dmGo').onclick=go;txt.addEventListener('keydown',e=>e.key=='Enter'&&go());
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(!SR){mic.classList.add('nosr');note.textContent='Voice isn\'t available in this browser. Tap an example or type instead.';mic.onclick=()=>{txt.focus();note.textContent='Voice isn\'t available here. Type or tap an example.'}}
-else{let rec=null;mic.onclick=()=>{if(rec){rec.stop();return}rec=new SR();rec.lang='en-US';rec.interimResults=true;mic.classList.add('live');note.textContent='Listening…';
- rec.onresult=ev=>{const t=[...ev.results].map(r=>r[0].transcript).join(' ');txt.value=t;if(ev.results[ev.results.length-1].isFinal)go()};
- rec.onerror=()=>{note.textContent='Couldn\'t hear that. Tap an example or type instead.'};rec.onend=()=>{mic.classList.remove('live');rec=null;if(note.textContent=='Listening…')note.textContent=''};rec.start()}}
-})();
+// ---- phone demo: video placeholder ----
+(()=>{const b=$('#vphPlay');if(b)b.onclick=()=>{$('#dmNote').textContent='Demo video coming soon.'}})();
+// ---- You Need a Bot videos: play buttons ----
+$$('.yv').forEach(f=>{const v=f.querySelector('video'),b=f.querySelector('.yplay');b.onclick=()=>{$$('.yv video').forEach(x=>x!==v&&x.pause());v.play()};v.onplay=()=>f.classList.add('playing');v.onpause=()=>f.classList.remove('playing')});
