@@ -1,0 +1,269 @@
+{
+  "name": "BotBar media kit",
+  "created": "2026-11-02",
+  "style": "midnight navy to violet gradient, cyan/magenta rim light, dark glass UI",
+  "count": 29,
+  "items": [
+    {
+      "file": "concept/botbar-hub.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Hero hub: BotBar keyboard phone with glowing cloud key in center; abstract AI bot avatars (Muse, Grok Bot, ChatGPT, Codex — no logos), app tiles and browser windows around it, linked by glowing cyan/violet sync lines.",
+      "site_copy": "assets/img/botbar-hub.webp"
+    },
+    {
+      "file": "concept/hero-keyboard.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Hero: floating phone with BotBar dark-glass keyboard, bot chips in top bar, glowing cloud key.",
+      "site_copy": "assets/img/hero-keyboard.webp"
+    },
+    {
+      "file": "concept/two-ais-turn-taking.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "Two AIs side by side (cyan vs magenta panes) taking turns, one key below, voice ribbon between.",
+      "site_copy": "assets/img/two-ais-turn-taking.webp"
+    },
+    {
+      "file": "concept/muse-pays-bill.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "Muse paying a bill in an app while the user watches; AI cursor on Pay, step trail.",
+      "site_copy": "assets/img/muse-pays-bill.webp"
+    },
+    {
+      "file": "concept/command-center-tiles.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Multi-bot command center: six live tiles with status rings, headless card tray floating above.",
+      "site_copy": "assets/img/command-center-tiles.webp"
+    },
+    {
+      "file": "concept/media-injection.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "Image/video bar (AIVid, Imagine, Google Flow) injecting a generated image into a compose field.",
+      "site_copy": "assets/img/media-injection.webp"
+    },
+    {
+      "file": "concept/vault-login-fill.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "Keyboard fills login; AI kept behind frosted glass and never sees the password.",
+      "site_copy": "assets/img/vault-login-fill.webp"
+    },
+    {
+      "file": "concept/voice-commands.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "Voice commands: voice waves flowing into keyboard waveform bar.",
+      "site_copy": "assets/img/voice-commands.webp"
+    },
+    {
+      "file": "concept/bot-store.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "Bot store shelf of bot capsules inside the keyboard (coming soon).",
+      "site_copy": "assets/img/bot-store.webp"
+    },
+    {
+      "file": "concept/ai-mesh.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Five AIs (Muse, Grok Bot, Grok, ChatGPT, Codex) as orbs linked through the keyboard hub.",
+      "site_copy": "assets/img/ai-mesh.webp"
+    },
+    {
+      "file": "concept/kloudy-browser-drive.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1152,
+      "height": 864,
+      "description": "AI driving Kloudy Browser: highlighted page regions, AI cursor click, cloud key.",
+      "site_copy": "assets/img/kloudy-browser-drive.webp"
+    },
+    {
+      "file": "phone/r69-image-open.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r69",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r69: Image Gen panel open above BotBar keyboard.",
+      "site_copy": "assets/shots/r69-image-open.webp"
+    },
+    {
+      "file": "phone/r69-notes-open.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r69",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r69: Notes panel open above keyboard.",
+      "site_copy": "assets/shots/r69-notes-open.webp"
+    },
+    {
+      "file": "phone/r69-cards-live.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r69",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r69: live cards / suggestion strip above keyboard.",
+      "site_copy": "assets/shots/r69-cards-live.webp"
+    },
+    {
+      "file": "phone/r68-after-system-back.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r68",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r68: Kloudy Browser home with search bar and app dock.",
+      "site_copy": "assets/shots/r68-after-system-back.webp"
+    },
+    {
+      "file": "phone/r69-mock-bot-page.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r69",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r69: Kloudy Browser result page (restaurant card) opened via bot.",
+      "site_copy": "assets/shots/r69-mock-bot-page.webp"
+    },
+    {
+      "file": "phone/r69-long-text.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r69",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r69: long text typed through keyboard.",
+      "site_copy": "assets/shots/r69-long-text.webp"
+    },
+    {
+      "file": "phone/r67-apps-row.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r67",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r67: Apps-in-Kloudy row and toolbar on keyboard.",
+      "site_copy": "assets/shots/r67-apps-row.webp"
+    },
+    {
+      "file": "phone/r67-install-offer.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r67",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r67: Kloudy install/open offer over keyboard.",
+      "site_copy": "assets/shots/r67-install-offer.webp"
+    },
+    {
+      "file": "phone/r67-browser-open.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r67",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r67: Kloudy Browser splash with bot mascot.",
+      "site_copy": "assets/shots/r67-browser-open.webp"
+    },
+    {
+      "file": "phone/r69-search-submit.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r69",
+      "width": 1080,
+      "height": 2400,
+      "description": "Real build r69: search submitted in Kloudy Browser.",
+      "site_copy": "assets/shots/r69-search-submit.webp"
+    },
+    {
+      "file": "phone/r70-land-cap.png",
+      "type": "phone-screenshot",
+      "source": "Sensai emulator, kk-shots/r70",
+      "width": 2520,
+      "height": 1080,
+      "description": "Real build r70 (landscape capture, already on disk; build untouched).",
+      "site_copy": "assets/shots/r70-land-cap.webp"
+    },
+    {
+      "file": "concept/tandem-browser.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Kloudy Browser scrapes pages; data streams flow to Muse and Grok Bot; keyboard links them.",
+      "site_copy": "assets/img/tandem-browser.webp"
+    },
+    {
+      "file": "concept/tandem-app-driven.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Phone app driven automatically: taps, forms filling, payment confirm; Muse narrates with waveforms, Grok Bot guides.",
+      "site_copy": "assets/img/tandem-app-driven.webp"
+    },
+    {
+      "file": "concept/tandem-media.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Grok Bot generates images/video frames that stream into an app and the browser via the keyboard.",
+      "site_copy": "assets/img/tandem-media.webp"
+    },
+    {
+      "file": "concept/tandem-turns.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Muse (purple) and Grok Bot (cyan) take turns talking; waveforms pass through the keyboard.",
+      "site_copy": "assets/img/tandem-turns.webp"
+    },
+    {
+      "file": "concept/tandem-command-center.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Full tandem: Muse, Grok Bot, app and browser in corner panels plus live tiles, synced around the keyboard.",
+      "site_copy": "assets/img/tandem-command-center.webp"
+    },
+    {
+      "file": "concept/tandem-headless.jpg",
+      "type": "concept",
+      "source": "GenerateImage",
+      "width": 1280,
+      "height": 720,
+      "description": "Headless mode: status cards stack on the phone while Muse and Grok Bot work in the background.",
+      "site_copy": "assets/img/tandem-headless.webp"
+    },
+    {
+      "file": "logos/aivid-logo.png",
+      "type": "logo",
+      "source": "provided by Johnny",
+      "width": 1024,
+      "height": 1024,
+      "description": "AIVid logo: cyan-to-purple rounded app tile with play frame, sparkles and scrub bar; 'AIVid' wordmark.",
+      "site_copy": "assets/img/aivid-logo.webp"
+    }
+  ]
+}
