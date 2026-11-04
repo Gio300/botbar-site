@@ -234,3 +234,10 @@ footer .logo-full{height:72px;width:auto;margin-bottom:8px}
 .demo-phone,.demo-phone[id]{height:min(80vh,calc((100vw - 32px)*19/9));height:min(80svh,calc((100vw - 32px)*19/9));width:auto;max-width:none;aspect-ratio:9/19}
 @media (max-width:820px){.demo-phone,.demo-phone[id]{height:min(80vh,calc((100vw - 32px)*19/9));height:min(80svh,calc((100vw - 32px)*19/9));width:auto;max-height:none}}
 .demo-phone video:fullscreen{object-fit:contain;border-radius:0}
+
+/* PS5 video fixes */
+.vexp{position:absolute;top:10px;right:10px;z-index:4;min-width:56px;height:56px;border-radius:12px;border:2px solid #fffd;background:#0b0c12cc;color:#fff;font-size:28px;line-height:1;cursor:pointer;padding:0 10px}
+.vexp:focus-visible,.yplay:focus-visible,.vbigplay:focus-visible{outline:3px solid #0aa6cf;outline-offset:3px}
+.yplay{width:80px;height:80px;z-index:3}
+.yv.playing .yplay,.vbigplay[hidden]{display:none!important;pointer-events:none!important}
+.demo-phone .vph .vsound{bottom:64px}
