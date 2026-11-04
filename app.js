@@ -149,6 +149,12 @@ addEventListener('scroll',tick,{passive:true});addEventListener('resize',tick);t
 $$('.vid').forEach(v=>{v.appendChild(Object.assign(document.createElement('span'),{className:'bar'}));v.tabIndex=0;v.setAttribute('role','button');
  const t=()=>{const on=!v.classList.contains('playing');$$('.vid').forEach(x=>x.classList.remove('playing'));if(on){void v.offsetWidth;v.classList.add('playing')}};v.onclick=t;v.onkeydown=e=>(e.key=='Enter'||e.key==' ')&&(e.preventDefault(),t())});
 // ---- phone demo: video placeholder ----
-(()=>{const v=$('#video-botbar-main'),b=$('#vphSound');if(!v||!b)return;const u=()=>{b.textContent=v.muted?'🔇 Tap for sound':'🔊 Sound on'};b.onclick=()=>{v.muted=!v.muted;if(!v.muted)v.play().catch(()=>{});u()};v.onclick=b.onclick;v.play().catch(()=>{})})();
+(()=>{const v=$('#video-botbar-main'),pb=$('#vphPlay'),b=$('#vphSound');if(!v||!pb||!b)return;let started=false;
+const u=()=>{b.hidden=!started;b.textContent=v.muted?'🔇 Tap for sound':'🔊';b.setAttribute('aria-label',v.muted?'Tap for sound':'Mute');pb.hidden=started&&!v.paused};
+const start=()=>{started=true;v.muted=false;v.volume=1;v.currentTime=0;const p=v.play();u();if(p&&p.catch)p.catch(()=>{v.muted=true;v.play().catch(()=>{});u()})};
+pb.onclick=e=>{e.stopPropagation();if(started)v.play().catch(()=>{});else start()};
+v.onclick=()=>{if(!started)return start();if(v.paused)v.play().catch(()=>{});else v.pause()};
+b.onclick=e=>{e.stopPropagation();v.muted=!v.muted;if(!v.muted){v.volume=1;v.play().catch(()=>{})}u()};
+v.addEventListener('play',u);v.addEventListener('pause',u);v.addEventListener('volumechange',u)})();
 // ---- You Need a Bot videos: play buttons ----
 $$('.yv').forEach(f=>{const v=f.querySelector('video'),b=f.querySelector('.yplay');b.onclick=()=>{$$('.yv video').forEach(x=>x!==v&&x.pause());v.play()};v.onplay=()=>f.classList.add('playing');v.onpause=()=>f.classList.remove('playing')});
