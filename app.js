@@ -151,10 +151,11 @@ $$('.vid').forEach(v=>{v.appendChild(Object.assign(document.createElement('span'
 // ---- phone demo: video placeholder ----
 (()=>{const v=$('#video-botbar-main'),pb=$('#vphPlay'),b=$('#vphSound');if(!v||!pb||!b)return;let started=false;
 const u=()=>{b.hidden=!started;b.textContent=v.muted?'🔇 Tap for sound':'🔊';b.setAttribute('aria-label',v.muted?'Tap for sound':'Mute');pb.hidden=started&&!v.paused};
-const start=()=>{started=true;v.muted=false;v.volume=1;v.currentTime=0;const p=v.play();u();if(p&&p.catch)p.catch(()=>{v.muted=true;v.play().catch(()=>{});u()})};
+const fs=()=>{try{if(v.requestFullscreen){const r=v.requestFullscreen();if(r&&r.catch)r.catch(()=>{})}else if(v.webkitRequestFullscreen)v.webkitRequestFullscreen();else if(v.webkitEnterFullscreen)v.webkitEnterFullscreen()}catch(e){}};
+const start=()=>{started=true;v.muted=false;v.volume=1;v.currentTime=0;const p=v.play();fs();u();if(p&&p.catch)p.catch(()=>{v.muted=true;v.play().catch(()=>{});u()})};
 pb.onclick=e=>{e.stopPropagation();if(started)v.play().catch(()=>{});else start()};
 v.onclick=()=>{if(!started)return start();if(v.paused)v.play().catch(()=>{});else v.pause()};
 b.onclick=e=>{e.stopPropagation();v.muted=!v.muted;if(!v.muted){v.volume=1;v.play().catch(()=>{})}u()};
-v.addEventListener('play',u);v.addEventListener('pause',u);v.addEventListener('volumechange',u)})();
+v.addEventListener('play',u);const keep=()=>{if(started&&v.paused)v.play().catch(()=>{})};document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)setTimeout(keep,50)});v.addEventListener('webkitendfullscreen',()=>setTimeout(keep,50));v.addEventListener('pause',u);v.addEventListener('volumechange',u)})();
 // ---- You Need a Bot videos: play buttons ----
 $$('.yv').forEach(f=>{const v=f.querySelector('video'),b=f.querySelector('.yplay');b.onclick=()=>{$$('.yv video').forEach(x=>x!==v&&x.pause());v.play()};v.onplay=()=>f.classList.add('playing');v.onpause=()=>f.classList.remove('playing')});
