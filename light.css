@@ -226,3 +226,5 @@ section.sec-patent,section.sec-demo{padding:110px 6vw}
 .vbigplay[hidden],.vsound[hidden]{display:none}
 .demo-phone .vph .vbigplay{width:104px!important;height:104px!important;min-width:0;border-radius:50%!important;background:rgba(11,12,18,.72)!important;border:2px solid rgba(255,255,255,.85)!important;color:#fff!important;font-size:44px!important;line-height:1!important;display:flex;align-items:center;justify-content:center;padding:0 0 0 8px!important}
 .demo-phone .vph .vbigplay[hidden]{display:none!important}
+.sub-tag{font:600 clamp(18px,2vw,26px)/1.3 'Space Grotesk',Inter,sans-serif;margin:14px 0 0;opacity:.85}
+footer .logo-full{height:72px;width:auto;margin-bottom:8px}
