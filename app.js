@@ -149,6 +149,6 @@ addEventListener('scroll',tick,{passive:true});addEventListener('resize',tick);t
 $$('.vid').forEach(v=>{v.appendChild(Object.assign(document.createElement('span'),{className:'bar'}));v.tabIndex=0;v.setAttribute('role','button');
  const t=()=>{const on=!v.classList.contains('playing');$$('.vid').forEach(x=>x.classList.remove('playing'));if(on){void v.offsetWidth;v.classList.add('playing')}};v.onclick=t;v.onkeydown=e=>(e.key=='Enter'||e.key==' ')&&(e.preventDefault(),t())});
 // ---- phone demo: video placeholder ----
-(()=>{const b=$('#vphPlay');if(b)b.onclick=()=>{$('#dmNote').textContent='Demo video coming soon.'}})();
+(()=>{const v=$('#video-botbar-main'),b=$('#vphSound');if(!v||!b)return;const u=()=>{b.textContent=v.muted?'🔇 Tap for sound':'🔊 Sound on'};b.onclick=()=>{v.muted=!v.muted;if(!v.muted)v.play().catch(()=>{});u()};v.onclick=b.onclick;v.play().catch(()=>{})})();
 // ---- You Need a Bot videos: play buttons ----
 $$('.yv').forEach(f=>{const v=f.querySelector('video'),b=f.querySelector('.yplay');b.onclick=()=>{$$('.yv video').forEach(x=>x!==v&&x.pause());v.play()};v.onplay=()=>f.classList.add('playing');v.onpause=()=>f.classList.remove('playing')});
