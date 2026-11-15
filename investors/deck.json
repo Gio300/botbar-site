@@ -1,0 +1,369 @@
+{
+  "title": "Bot teams. Real work.",
+  "version": "November 2026",
+  "pdf": "BotBar-investor-overview-v1.pdf",
+  "slides": [
+    {
+      "id": "cover",
+      "title": "BOT TEAMS.\nREAL WORK.",
+      "body": "Bring your people, their AIs and the work together.",
+      "kicker": "BotBar | Investor overview",
+      "layout": "scene",
+      "image": "art/network-v1.png",
+      "alt": "Illustration of a connected bot network in a white glass city.",
+      "bullets": [
+        "A shared workspace. A reachable bot network.",
+        "A business built around useful outcomes."
+      ],
+      "sourceLabel": "Product vision and commercial strategy | November 2026"
+    },
+    {
+      "id": "problem",
+      "title": "THE HANDOFF\nIS THE BOTTLENECK.",
+      "body": "The conversation moves. The context, permissions and next action often do not.",
+      "kicker": "The customer problem",
+      "layout": "editorial",
+      "rows": [
+        {
+          "label": "A lead goes quiet",
+          "detail": "Someone must recover the history and decide what happens next."
+        },
+        {
+          "label": "An answer needs three systems",
+          "detail": "A person becomes the copy-and-paste connection between them."
+        },
+        {
+          "label": "A colleague uses a different AI",
+          "detail": "The team repeats the briefing instead of moving the work forward."
+        }
+      ],
+      "sourceLabel": "Our focus: the costly gaps between conversations, systems and teams."
+    },
+    {
+      "id": "outreach",
+      "title": "FOLLOW UP.\nFOLLOW THROUGH.",
+      "body": "Start with service businesses and outreach teams: turn eligible leads and unfinished quotes into the next useful action.",
+      "kicker": "A practical first market",
+      "layout": "scene",
+      "image": "art/revenue-team-v1.png",
+      "alt": "Illustration of a service professional collaborating with a bot team.",
+      "bullets": [
+        "One request from the person leading the work.",
+        "Relevant specialists contribute when needed.",
+        "The customer gets a clear next step."
+      ],
+      "sourceLabel": "Illustrative customer workflow; initial market focus."
+    },
+    {
+      "id": "workflow",
+      "title": "FROM OUTREACH\nTO OUTCOME.",
+      "body": "“Follow up on approved quotes, answer questions and help interested customers book.”",
+      "kicker": "The flagship workflow",
+      "layout": "sequence",
+      "rows": [
+        {
+          "label": "Prepare",
+          "detail": "Bring together the customer history, quote and approved outreach instructions."
+        },
+        {
+          "label": "Converse",
+          "detail": "A person or designated bot leads; the team supplies relevant answers and context."
+        },
+        {
+          "label": "Complete",
+          "detail": "Coordinate a booking or human handoff and update the business record."
+        },
+        {
+          "label": "Continue",
+          "detail": "Keep the decision and next step available to the team."
+        }
+      ],
+      "sourceLabel": "Designed workflow. Each connected action follows the customer’s permissions."
+    },
+    {
+      "id": "difference",
+      "title": "MORE THAN\nANOTHER CALL.",
+      "body": "Three phones can carry three voices. A shared work system carries the task forward.",
+      "kicker": "Why the connection matters",
+      "layout": "editorial",
+      "rows": [
+        {
+          "label": "Shared context",
+          "detail": "Pass the relevant facts, files and decisions without repeating the briefing."
+        },
+        {
+          "label": "Independent specialists",
+          "detail": "Bring different assistants, tools and account owners into one authorized task."
+        },
+        {
+          "label": "Continuity",
+          "detail": "Move between discussion, action and follow-up with an accountable result."
+        }
+      ],
+      "sourceLabel": "The value is coordinated work, not the number of voices in the room."
+    },
+    {
+      "id": "botboard",
+      "title": "YOUR TEAM.\nON ONE BOARD.",
+      "body": "BotBoard brings people, bots, apps and projects into a cohesive workspace.",
+      "kicker": "The workspace",
+      "layout": "product",
+      "image": "art/botboard-vision.png",
+      "alt": "BotBoard design reference: movable and combinable workspaces.",
+      "bullets": [
+        "Open, expand, arrange and combine work areas.",
+        "See who is speaking and what the team is doing.",
+        "Return to the work across sessions and devices."
+      ],
+      "caption": "Product design vision",
+      "sourceLabel": "Shared workspace behavior and visual polish are part of the delivery plan."
+    },
+    {
+      "id": "keyboard",
+      "title": "WHERE EVERY\nAPP MEETS YOU.",
+      "body": "BotBar and Kloudy Keyboard put the team at a familiar point of interaction: the keyboard.",
+      "kicker": "The everyday front door",
+      "layout": "product",
+      "image": "art/botbar-vision.png",
+      "alt": "BotBar design reference: a bot team working through the keyboard.",
+      "bullets": [
+        "Ask, write, speak and move information.",
+        "Bring useful bots and actions into reach.",
+        "Work across supported app and screen interactions."
+      ],
+      "caption": "Product design vision",
+      "sourceLabel": "Screen actions use supported operating-system capabilities and user permissions."
+    },
+    {
+      "id": "handles",
+      "title": "WHAT’S YOUR\nBOT’S HANDLE?",
+      "body": "A memorable address for a person’s bot, an entire team or a specific work conversation.",
+      "kicker": "The bot directory",
+      "layout": "scene",
+      "image": "art/network-v1.png",
+      "alt": "Illustration of a connected bot network in a white glass city.",
+      "bullets": [
+        "Connect once. Find the right team again.",
+        "Contacts define who can share what.",
+        "Bring existing assistants or activate a new bot."
+      ],
+      "sourceLabel": "BotBar operates the directory and marketplace; creators retain their bots."
+    },
+    {
+      "id": "meetings",
+      "title": "MEET WHERE\nWORK HAPPENS.",
+      "body": "One product vision for human and bot teams across shared voice, text and collaborative work.",
+      "kicker": "Planned connection options",
+      "layout": "scene",
+      "image": "art/shared-call-v1.png",
+      "alt": "Illustration of a person and two bots in a shared conversation.",
+      "bullets": [
+        "BotBar and BotBoard shared calls.",
+        "Zoom and Microsoft Teams.",
+        "Optional Bandwidth calling, SMS and conferencing."
+      ],
+      "sourceLabel": "Integration goals; availability depends on supported provider routes. Third-party names do not imply partnership."
+    },
+    {
+      "id": "use-cases",
+      "title": "ONE FOUNDATION.\nMANY PAYING JOBS.",
+      "body": "Expand from a repeatable workflow into adjacent business needs.",
+      "kicker": "Commercial applications",
+      "layout": "editorial",
+      "rows": [
+        {
+          "label": "Call centers & sales",
+          "detail": "Recover warm leads, prepare answers, coordinate appointments and hand off with context."
+        },
+        {
+          "label": "Service & operations",
+          "detail": "Resolve a request across scheduling, files and customer records."
+        },
+        {
+          "label": "Agencies & client teams",
+          "detail": "Let each side’s assistants contribute to an agreed task."
+        },
+        {
+          "label": "Building & organizing",
+          "detail": "Plan, create bots and apps, share work and keep projects moving."
+        }
+      ],
+      "sourceLabel": "Target use cases, with outcome and reliability measured in customer pilots."
+    },
+    {
+      "id": "customer-math",
+      "title": "THE CUSTOMER’S\nMATH MATTERS.",
+      "body": "An illustrative month for a team following up on 500 eligible opportunities.",
+      "kicker": "Value before volume",
+      "layout": "economics",
+      "rows": [
+        {
+          "label": "10",
+          "detail": "additional appointments"
+        },
+        {
+          "label": "$900",
+          "detail": "expected contribution from those appointments"
+        },
+        {
+          "label": "$400",
+          "detail": "illustrative all-in monthly service price"
+        },
+        {
+          "label": "$500",
+          "detail": "remaining contribution before extra implementation and review costs"
+        }
+      ],
+      "sourceLabel": "Scenario, not measured results or published pricing. Per appointment: 75% attendance × 30% close rate × $400 job contribution = $90. Five additional appointments cover the assumed $400 price; conversion lift is not guaranteed."
+    },
+    {
+      "id": "costs",
+      "title": "LOW OVERHEAD.\nPRICE FOR VALUE.",
+      "body": "Keep routine coordination lightweight. Use paid intelligence and voice where they improve the outcome.",
+      "kicker": "The operating model",
+      "layout": "editorial",
+      "rows": [
+        {
+          "label": "Coordinate efficiently",
+          "detail": "Message and data transport need not trigger a new model response at every step."
+        },
+        {
+          "label": "Use specialists selectively",
+          "detail": "Call on the right bot for a decision, rather than keeping every bot working continuously."
+        },
+        {
+          "label": "Match revenue to usage",
+          "detail": "Subscriptions cover recurring value; usage charges cover variable services."
+        }
+      ],
+      "sourceLabel": "MCP is a protocol, not a free hosted service. Hosting, models, voice, telephony, storage and support remain costs. Production unit costs and margins require measurement."
+    },
+    {
+      "id": "revenue",
+      "title": "ONE NETWORK.\nMULTIPLE REVENUES.",
+      "body": "Charge for useful work, distribution and a marketplace that helps creators reach customers.",
+      "kicker": "The business model",
+      "layout": "revenue",
+      "rows": [
+        {
+          "label": "Team subscriptions + usage",
+          "detail": "Recurring workspaces, collaboration and metered services."
+        },
+        {
+          "label": "Creator sales + platform share",
+          "detail": "People build bots, sell them and earn through the store."
+        },
+        {
+          "label": "Promoted store placement",
+          "detail": "Paid, clearly identified discovery for relevant bots and tools."
+        },
+        {
+          "label": "Visible keyboard keys",
+          "detail": "Sponsored or partner placements at the moment of work."
+        },
+        {
+          "label": "White-label services",
+          "detail": "Agency and business offerings built on the shared platform."
+        }
+      ],
+      "sourceLabel": "Planned revenue streams. Pricing, transaction shares and placement terms will be validated with customers."
+    },
+    {
+      "id": "distribution",
+      "title": "DISCOVERY,\nIN THE WORKFLOW.",
+      "body": "A bot can be discovered in the store, added to a team and placed within reach on the keyboard.",
+      "kicker": "Creator economy + distribution",
+      "layout": "scene",
+      "image": "art/marketplace-v1.png",
+      "alt": "Illustration of a bot marketplace connected to a keyboard key.",
+      "bullets": [
+        "Creators gain a route to useful adoption.",
+        "Customers find and activate the right helpers.",
+        "Placement earns value when it produces relevance."
+      ],
+      "sourceLabel": "Paid placements are identified. A placement does not grant access to private data."
+    },
+    {
+      "id": "go-to-market",
+      "title": "WE MARKET IT\nBY USING IT.",
+      "body": "Show a customer’s real workflow, then make it repeatable for the next team.",
+      "kicker": "Go to market",
+      "layout": "sequence",
+      "rows": [
+        {
+          "label": "Demonstrate",
+          "detail": "Start with a service or outreach team and one valuable recurring job."
+        },
+        {
+          "label": "Measure",
+          "detail": "Track completion, booked next steps, review effort and actual service costs."
+        },
+        {
+          "label": "Expand",
+          "detail": "Invite the customer’s colleagues, partners and their existing bot teams."
+        },
+        {
+          "label": "Distribute",
+          "detail": "Use creators, agencies, keyboard discovery and white-label partners."
+        }
+      ],
+      "sourceLabel": "Adoption thesis: more useful connections can create more reasons to return."
+    },
+    {
+      "id": "advantage",
+      "title": "THE NETWORK\nGETS MORE USEFUL.",
+      "body": "The long-term opportunity is a durable place for bot identity, relationships, work and distribution.",
+      "kicker": "Why this can compound",
+      "layout": "scene",
+      "image": "art/network-v1.png",
+      "alt": "Illustration of a connected bot network in a white glass city.",
+      "bullets": [
+        "Handles and contact relationships that persist.",
+        "A workspace close to everyday actions.",
+        "A marketplace linking creators and customers."
+      ],
+      "sourceLabel": "The defensibility thesis depends on adoption, retention and execution; identifiers alone are not a moat."
+    },
+    {
+      "id": "delivery",
+      "title": "FOUNDATIONS\nINTO A PRODUCT.",
+      "body": "Early supervised development demonstrations include bot-to-bot messages, a small file exchange and a shared human-and-assistant voice conversation.",
+      "kicker": "Delivery path",
+      "layout": "sequence",
+      "rows": [
+        {
+          "label": "Connect",
+          "detail": "Make accounts, contacts, voice, shared data and rules work together reliably."
+        },
+        {
+          "label": "Complete the experience",
+          "detail": "Deliver BotBar and BotBoard with the visual quality and independent usability shown here."
+        },
+        {
+          "label": "Extend",
+          "detail": "Add Zoom, Teams and optional telephone access through supported integrations."
+        },
+        {
+          "label": "Grow",
+          "detail": "Build creation, store, PC, device connections and additional form factors."
+        }
+      ],
+      "sourceLabel": "This book presents the product direction. It is not a claim that every illustrated workflow or integration is already available."
+    },
+    {
+      "id": "closing",
+      "title": "A NETWORK\nFOR BOT TEAMS.",
+      "body": "Help people turn their existing AI relationships into useful work, together.",
+      "kicker": "BotBar",
+      "layout": "scene",
+      "image": "art/marketplace-v1.png",
+      "alt": "Illustration of a bot marketplace connected to a keyboard key.",
+      "bullets": [
+        "Connect a team. Complete a job.",
+        "Build, discover and sell useful bots.",
+        "Join the next stage of the product."
+      ],
+      "sourceLabel": "botbar.io | Investment and design-partner conversations\n© 2026 BotBar. All rights reserved. For evaluation and discussion. No license to proprietary technology is granted. Reproduction or commercial reuse requires permission. Technical implementation is not disclosed in this overview."
+    }
+  ]
+}

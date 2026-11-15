@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f9fc">
+  <meta name="description" content="Explore BotBar: people and their bot teams working together.">
+  <title>BotBar — Investor book</title>
+  <link rel="stylesheet" href="./reader.css">
+  <script src="./reader.js" defer></script>
+</head>
+<body class="bb-reader">
+  <a class="bb-skip" href="#book">Skip to the book</a>
+  <div class="bb-reader-shell" id="reader-shell">
+    <header class="bb-topbar bb-reader-chrome">
+      <a class="bb-brand" href="/" aria-label="BotBar home">
+        <img src="../assets/botbar-mark.svg" alt="" width="32" height="32">
+        <span>BotBar<span class="bb-brand-divider" aria-hidden="true"></span><span class="bb-edition">Investor book</span></span>
+      </a>
+      <nav class="bb-top-actions" aria-label="Book options">
+        <a class="bb-text-link bb-back" href="/">Back to site <span aria-hidden="true">↗</span></a>
+        <a class="bb-download" id="pdf-link" hidden download>Download PDF <span aria-hidden="true">↓</span></a>
+      </nav>
+    </header>
+
+    <main class="bb-book" id="book" tabindex="-1" aria-label="Investor book">
+      <div class="bb-book-heading bb-reader-chrome">
+        <span class="bb-book-label" id="book-label">People. Bots. Possibilities.</span>
+        <span class="bb-version" id="book-version"></span>
+      </div>
+      <div class="bb-stage-wrap">
+        <div class="bb-deck-stage" id="deck-stage" aria-label="Book pages">
+          <div class="bb-loading" id="book-message" role="status">
+            <span class="bb-loading-orb" aria-hidden="true"></span>
+            <p id="message-text">Opening the book…</p>
+            <button class="bb-button" id="retry-button" type="button" hidden>Try again</button>
+          </div>
+        </div>
+      </div>
+      <section class="bb-mobile-copy" id="mobile-copy" aria-label="Page text" hidden></section>
+      <noscript><p class="bb-noscript">Enable JavaScript to read the investor book, or <a href="/">return to BotBar</a>.</p></noscript>
+    </main>
+
+    <footer class="bb-controls bb-reader-chrome" aria-label="Page navigation">
+      <div class="bb-controls-side">
+        <button class="bb-button bb-contents-button" id="contents-button" type="button" aria-haspopup="dialog" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1"/></svg><span>Contents</span>
+        </button>
+      </div>
+      <div class="bb-page-navigation">
+        <button class="bb-icon-button" id="previous-button" type="button" aria-label="Previous page" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+        <span class="bb-page-counter" id="page-counter" aria-hidden="true">— / —</span>
+        <button class="bb-icon-button" id="next-button" type="button" aria-label="Next page" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="bb-controls-side bb-controls-end">
+        <button class="bb-button" id="fullscreen-button" type="button" aria-label="Enter fullscreen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span class="bb-fullscreen-label">Fullscreen</span></button>
+      </div>
+    </footer>
+    <p class="bb-sr-only" id="page-announcement" aria-live="polite" aria-atomic="true"></p>
+    <p class="bb-sr-only" id="action-announcement" role="status"></p>
+  </div>
+
+  <dialog class="bb-contents" id="contents-dialog" aria-labelledby="contents-title">
+    <div class="bb-contents-heading"><div><p class="bb-eyebrow">The investor book</p><h2 id="contents-title">Find your page.</h2></div><button class="bb-icon-button" id="close-contents" type="button" aria-label="Close contents"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <ol class="bb-contents-list" id="contents-list"></ol>
+  </dialog>
+</body>
+</html>

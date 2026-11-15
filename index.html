@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="light.css">
+<link rel="stylesheet" href="investor-entry.css?v=1">
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="assets/brand/icon-32.png"><link rel="icon" type="image/svg+xml" href="assets/brand/botbar-mark.svg?v=11"><link rel="apple-touch-icon" sizes="180x180" href="assets/brand/icon-180.png">
 <meta name="theme-color" content="#f3f2f0">
 </head><body>
@@ -25,9 +26,15 @@
     <h1><span class="grad">Control</span> the screen.</h1>
     <p class="sub-tag">Whoever controls the keyboard controls the screen.</p>
     <p class="lede">BotBar puts Muse, Grok Bot, Grok, ChatGPT and Codex in the one place every app already has: your keyboard. They talk to each other, take turns, and get real things done in your apps and in Kloudy Browser, while you watch.</p>
-    <div class="cta-row">
-      <a class="btn big" href="/download/botbar-keyboard.apk" download><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3v11.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4L11 14.2V3h1zM5 19h14v2H5z"/></svg> Download BotBar keyboard</a>
-      <span class="fine">Android APK · Play Store coming soon</span>
+    <div class="cta-row bb-entry-actions">
+      <div class="bb-entry-action">
+        <a class="btn big" href="/download/botbar-keyboard.apk" download><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3v11.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4L11 14.2V3h1zM5 19h14v2H5z"/></svg><span>Download BotBar keyboard</span></a>
+        <span class="fine">Android APK · Play Store coming soon</span>
+      </div>
+      <div class="bb-entry-action">
+        <a class="btn big bb-investor-cta" href="/investors/"><span>Open investor deck</span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+        <a class="bb-investor-pdf" href="/investors/BotBar-investor-overview-v1.pdf" download>Download PDF</a>
+      </div>
     </div>
   </div>
   <div class="hero-kb reveal delay" aria-label="The BotBar keyboard"><div class="hk">
@@ -40,6 +47,32 @@
   <div class="scroll-cue">Scroll to see how it works <span>↓</span></div>
 </section>
 
+<section class="bb-usecases" aria-labelledby="bb-usecases-title">
+  <div class="bb-usecases-heading">
+    <div><p class="bb-usecases-kicker">Product direction</p><h2 id="bb-usecases-title">Built around what people need to get done.</h2></div>
+    <a href="/investors/">Explore the vision <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="bb-usecases-scroll" role="region" aria-label="Four BotBar use cases; scroll to explore" tabindex="0">
+    <ul class="bb-usecases-list">
+      <li class="bb-usecase">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 24V9m0 15h21M11 20l6-6 4 3 6-9m-6 0h6v6"/></svg>
+        <h3>Revenue follow-up</h3><p>Keep promising conversations moving toward the next meeting.</p>
+      </li>
+      <li class="bb-usecase">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="11" r="4"/><path d="M3 25v-3a7 7 0 0 1 12-5m8-8V6m-5 6h10v11H18zM21 16v1m4-1v1m-4 3h4"/></svg>
+        <h3>Human + bot teams</h3><p>Bring people and their chosen assistants into shared work.</p>
+      </li>
+      <li class="bb-usecase">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="22" height="21" rx="4"/><path d="M11 4v6m10-6v6M5 14h22m-16 7 3 3 7-7"/></svg>
+        <h3>Service coordination</h3><p>Keep requests, handoffs and follow-through together.</p>
+      </li>
+      <li class="bb-usecase">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 13 3-7h18l3 7M4 13v2a4 4 0 0 0 8 0 4 4 0 0 0 8 0 4 4 0 0 0 8 0v-2M7 19v9h18v-9m-12 9v-7h6v7"/></svg>
+        <h3>Creator marketplace</h3><p>Give useful bots a place to be discovered and purchased.</p>
+      </li>
+    </ul>
+  </div>
+</section>
 
 <section class="route" id="route" aria-label="Two stories: one request, every connection">
  <div class="route-stick">
