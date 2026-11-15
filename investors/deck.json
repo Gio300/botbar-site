@@ -1,302 +1,443 @@
 {
-  "title": "Bot teams. Real work.",
-  "version": "November 2026 · Revised edition",
-  "pdf": "BotBar-investor-overview-v2.pdf",
+  "title": "Your bots work for you",
+  "version": "November 2026 / Third edition",
+  "pdf": "BotBar-investor-overview-v3.pdf",
   "slides": [
     {
       "id": "cover",
-      "title": "BOT TEAMS.\nREAL WORK.",
-      "kicker": "BotBar | Investor overview",
-      "body": "People and their AIs, connected to finish the work together.",
+      "title": "YOUR BOTS\nWORK FOR YOU",
+      "kicker": "BotBar / Investor overview",
+      "body": "Assistants that organize daily work and act for people and businesses.",
       "image": "art/network-v1.webp",
       "layout": "scene",
       "alt": "Concept illustration: Turn separate assistants into a working team.",
       "bullets": [
-        "One network for conversations, context and action.",
-        "A workspace, a directory and a market for useful bots."
+        "Everyday access through the BotBar keyboard.",
+        "Business services through BotBoozle."
       ],
       "expanded": {
-        "title": "Turn separate assistants into a working team",
+        "title": "A request can become a completed next step",
         "body": [
-          "Businesses already use multiple assistants, apps and communication channels. BotBar brings them into a shared workflow, so people can ask for a result instead of carrying every message and file between systems.",
-          "The business combines everyday access through the keyboard, collaboration through BotBoard, and a network where people can reach, discover and buy bot services."
+          "People spend time sorting messages, chasing replies and carrying context between apps. BotBar aims to let their assistants organize the work, reach the right service and return a useful result.",
+          "The business combines a familiar consumer access point with an enterprise offer, a directory of accepted relationships and a marketplace for useful bots."
         ],
         "rows": []
       },
-      "sourceLabel": "Product direction and investment opportunity | November 2026"
+      "sourceLabel": "Product vision and investment opportunity / November 2026"
     },
     {
-      "id": "problem",
-      "title": "THE HANDOFF\nIS THE BOTTLENECK.",
-      "kicker": "1 · The problem",
-      "body": "A conversation can move instantly. The work behind it often starts over.",
+      "id": "daily-burden",
+      "title": "INBOXES\nINTERRUPTIONS\nUNFINISHED WORK",
+      "kicker": "1 / The everyday burden",
+      "body": "Each message can create another task to organize, schedule or chase.",
       "image": "art/handoff-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: The customer pays for the gaps between systems.",
       "bullets": [
-        "Customer history lives in one place.",
-        "The answer or action lives somewhere else.",
-        "A person has to connect the pieces."
+        "Important requests compete with unwanted alerts.",
+        "People reconcile calendars and repeat the same context."
       ],
       "expanded": {
-        "title": "The customer pays for the gaps between systems",
+        "title": "The burden is deciding what deserves action",
         "body": [
-          "A sales representative may need a quote, a customer conversation and a calendar before offering the next step. A service agent may need another specialist without making the customer repeat the story.",
-          "The opportunity is to reduce that coordination burden: keep the right context with the task and make the next authorized action easier to complete."
+          "An inbox is only the start. A person still has to identify the request, collect a document, compare availability and follow through. Businesses carry the same burden when customers move between departments or suppliers.",
+          "Microsoft reported 117 emails a day and 153 Teams messages per weekday in its Microsoft 365 telemetry. BotBar targets the organizing and follow-through work around that communication."
         ],
         "rows": [
           {
-            "label": "Buyer",
-            "detail": "Contact-center leaders, service-business owners and teams managing customer follow-up."
+            "label": "Workload evidence",
+            "detail": "Microsoft WorkLab, June 17, 2025. Microsoft 365 population, excluding EU and education tenants. These figures do not describe every consumer."
           },
           {
-            "label": "Cost of the problem",
-            "detail": "Repeated briefings, dropped follow-ups, time spent copying information and handoffs without a clear owner."
+            "label": "Intended value",
+            "detail": "Fewer unnecessary interruptions and a clear next step when attention is needed."
           }
         ]
-      }
+      },
+      "sourceLabel": "Microsoft: 117 emails/day and 153 Teams messages/weekday. M365 telemetry, excluding EU and education tenants.",
+      "sources": [
+        {
+          "label": "Microsoft WorkLab / June 2025",
+          "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/breaking-down-infinite-workday"
+        }
+      ]
     },
     {
-      "id": "difference",
-      "title": "BOTS THAT\nWORK TOGETHER.",
-      "kicker": "2 · The solution",
-      "body": "A connected team can carry the context, coordinate the task and return a useful result.",
+      "id": "agents-at-work",
+      "title": "ASSISTANTS\nACTING FOR YOU",
+      "kicker": "2 / The customer experience",
+      "body": "Your bot prepares the request. An accepted company handle reaches the right business bot.",
       "image": "art/context-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: Keep the work connected across channels.",
       "bullets": [
-        "Messages, email and files.",
-        "Shared voice and background coordination.",
-        "Tools and app actions with people in control."
+        "Relevant context accompanies the task.",
+        "The answer, document or booking returns to you.",
+        "You approve the next step at your chosen level."
       ],
       "expanded": {
-        "title": "Keep the work connected across channels",
+        "title": "A reusable relationship across company boundaries",
         "body": [
-          "Email is one way to exchange information. The broader product brings conversations, files, instructions and supported actions into the same team workflow.",
-          "One assistant can gather an answer, another can use it in an authorized task, and a person can guide the discussion. The goal is continuity from request to result, including while the team is speaking."
+          "A customer asks their assistant to arrange a service. Their team organizes the request and the information they allow it to share. An accepted business handle provides a repeatable way to reach the appropriate company bot.",
+          "The business returns availability, a quote or a document. The customer sees the outcome and can approve the next action. Supported workflows should preserve the useful context instead of making either side start again."
         ],
         "rows": [
           {
-            "label": "Kloudy MCP",
-            "detail": "The connection for bot messages, data and tool coordination."
+            "label": "For people",
+            "detail": "An organizer that can prepare work and complete supported actions."
           },
           {
-            "label": "BotBar + Keyboard",
-            "detail": "The interaction surface for supported app work and information exchange."
-          },
-          {
-            "label": "BotBoard",
-            "detail": "The shared place to see the team, combine work areas and continue the task."
+            "label": "For businesses",
+            "detail": "A consistent way to receive a permitted request and return a useful result."
           }
         ]
       },
-      "sourceLabel": "Product scope. Availability varies by connected system and supported workflow."
+      "sourceLabel": "Intended supported workflow. Actions depend on connected services, permissions and launch availability."
     },
     {
-      "id": "outreach",
-      "title": "FOLLOW UP.\nFOLLOW THROUGH.",
-      "kicker": "3 · The first customer",
-      "body": "Start with call centers and service businesses that already pay to turn customer interest into action.",
-      "image": "art/revenue-team-v1.webp",
+      "id": "revenue",
+      "title": "HOW THE\nBUSINESS EARNS",
+      "kicker": "3 / Revenue model",
+      "body": "Customers pay for useful work. Partners pay for relevant, chosen discovery.",
+      "image": "art/revenue-v2.webp",
       "layout": "scene",
-      "alt": "Concept illustration: Sell a recurring business job with a clear owner.",
+      "alt": "Concept illustration: Each revenue stream has a customer and a reason to pay.",
       "bullets": [
-        "Recover eligible leads and unfinished quotes.",
-        "Help a representative resolve questions.",
-        "Coordinate a booking or informed handoff."
+        "Subscriptions and enterprise licenses.",
+        "Paid communication or compute usage.",
+        "Commission on creator marketplace sales.",
+        "Opt-in sponsored keys and store placements."
       ],
       "expanded": {
-        "title": "Sell a recurring business job with a clear owner",
+        "title": "Each revenue stream has a buyer and a reason to pay",
         "body": [
-          "The first offer is a focused workflow for a team that already has customers, approved outreach and a reason to follow up. The buyer is the person responsible for customer response, sales operations or service delivery.",
-          "A paid pilot establishes whether the team can complete the job reliably. Expansion follows useful results and repeat use, rather than asking a business to replace every system at once."
+          "Individuals and teams can subscribe for recurring organization and collaboration. Organizations can license BotBoozle, including white-label services, deployment and support. Usage fees can cover selected services with variable costs.",
+          "Creators sell useful bots and the platform earns an agreed marketplace commission. Partners can purchase clearly identified keys or store placements when users choose sponsored discovery."
         ],
         "rows": [
           {
-            "label": "Customer value",
-            "detail": "Less re-briefing and manual coordination; a more complete next step for the customer."
+            "label": "Recurring revenue",
+            "detail": "Paid accounts and contracted enterprise fees."
           },
           {
-            "label": "Revenue route",
-            "detail": "Paid team services, recurring workflow subscriptions and metered optional communication services."
-          }
-        ]
-      }
-    },
-    {
-      "id": "workflow",
-      "title": "FROM OUTREACH\nTO OUTCOME.",
-      "kicker": "4 · A complete workflow",
-      "body": "“Follow up on approved quotes, answer questions and help interested customers book.”",
-      "image": "art/workflow-v2.webp",
-      "layout": "scene",
-      "alt": "Concept illustration: Each participant contributes to the same outcome.",
-      "bullets": [
-        "Prepare the relevant history and instructions.",
-        "Let the right people and bots contribute.",
-        "Return the booking, handoff or next step."
-      ],
-      "expanded": {
-        "title": "Each participant contributes to the same outcome",
-        "body": [
-          "The task starts with the customer’s approved records and instructions. A specialist can answer a question or check a supported tool while the lead participant keeps the conversation moving.",
-          "The workflow ends with a returned result and an updated business record. That makes the product useful for sales follow-up, service coordination and collaboration between client teams."
-        ],
-        "rows": [
-          {
-            "label": "Prepare",
-            "detail": "Gather the permitted context and assign the task."
+            "label": "Usage revenue",
+            "detail": "Billable units multiplied by the agreed unit price."
           },
           {
-            "label": "Converse",
-            "detail": "Use voice, messages or email as appropriate; share relevant files and answers."
+            "label": "Marketplace revenue",
+            "detail": "Eligible completed transaction value multiplied by the agreed commission. Creator sales volume is not platform revenue."
           },
           {
-            "label": "Complete",
-            "detail": "Make the supported booking or handoff and record the result."
-          },
-          {
-            "label": "Continue",
-            "detail": "Keep the next step available to the authorized team."
+            "label": "Discovery revenue",
+            "detail": "Eligible sponsored placements or advertising inventory, subject to user choice and commercial terms."
           }
         ]
       },
-      "sourceLabel": "Designed customer workflow; connected actions follow the customer’s permissions."
+      "sourceLabel": "Proposed commercial model. Prices, commissions and contracts remain launch decisions."
     },
     {
       "id": "keyboard",
-      "title": "THE TEAM,\nAT YOUR FINGERTIPS.",
-      "kicker": "5 · BotBar + Kloudy Keyboard",
-      "body": "Put useful AI work where people already type, speak and interact with their screens.",
+      "title": "BOTBAR\nWHERE YOU TYPE",
+      "kicker": "4 / Everyday access and distribution",
+      "body": "The keyboard puts a person's bot team beside the work already on their screen.",
       "image": "art/botbar-vision.webp",
       "layout": "product",
       "alt": "Concept illustration: Own an everyday point of access.",
       "bullets": [
-        "Reach a bot without rebuilding the workflow.",
-        "Move information across supported app interactions.",
-        "Discover useful services through visible keys."
+        "Type, speak or reach a familiar bot.",
+        "Use permitted context in supported app work.",
+        "Return to useful services through visible keys."
       ],
       "expanded": {
-        "title": "Own an everyday point of access",
+        "title": "Daily access can turn a useful action into a habit",
         "body": [
-          "The keyboard gives BotBar a recurring point of contact with the user. Supported screen interactions connect the request to useful work in an app, with the user’s permissions.",
-          "That distribution surface also creates commercial inventory: relevant partner keys, sponsored placements and paths from a useful action to a bot’s store listing. The keyboard remains an entry point to the broader network."
+          "BotBar is the everyday entry point. Its keyboard brings assistants close to the places where people write, communicate and act, reducing the effort of switching to a separate workflow.",
+          "That access also supports distribution. A person can keep useful bots close at hand, discover services and revisit a creator or business. Sponsored keys remain optional, identified placements."
         ],
         "rows": [
           {
-            "label": "For users",
-            "detail": "Familiar typing and voice controls, with their bot team close at hand."
+            "label": "Consumer offer",
+            "detail": "Accessible keyboard and bot-team entry, with optional paid services."
           },
           {
-            "label": "For partners",
-            "detail": "A visible, contextual route to discovery at the moment a customer needs help."
+            "label": "Distribution value",
+            "detail": "Repeat access at the moment a person needs help, rather than relying only on a store visit."
           }
         ]
       },
-      "sourceLabel": "Product design vision. Screen actions depend on supported OS capabilities and user permissions."
+      "sourceLabel": "Illustrated product vision. Supported screen actions require OS capabilities and user permissions."
     },
     {
-      "id": "botboard",
-      "title": "YOUR TEAM.\nON ONE BOARD.",
-      "kicker": "6 · BotBoard",
-      "body": "A shared workspace for the people, bots, apps and projects behind the task.",
-      "image": "art/botboard-vision.webp",
-      "layout": "product",
-      "alt": "Concept illustration: Make collaboration understandable and usable.",
+      "id": "customer-outcome",
+      "title": "A REQUEST\nBECOMES A RESULT",
+      "kicker": "5 / A concrete customer job",
+      "body": "“Find a service time that works for me and bring back the options.”",
+      "image": "art/workflow-v2.webp",
+      "layout": "scene",
+      "alt": "Concept illustration: Each participant contributes to the same outcome.",
       "bullets": [
-        "Open, expand, arrange and combine work areas.",
-        "See the participants and their contributions.",
-        "Return to a connected project across sessions."
+        "Prepare the request and permitted availability.",
+        "Ask the accepted business contact.",
+        "Return the options for confirmation."
       ],
       "expanded": {
-        "title": "Make collaboration understandable and usable",
+        "title": "The useful outcome is a decision someone can make",
         "body": [
-          "BotBoard is the place where the connections become a coherent experience. Users can see which assistants are involved, what they are discussing and the work they are producing.",
-          "Combining work areas must connect the actual task and participants. The intended result is a workspace someone can use independently, with continuity between the conversation and its outcome."
+          "The personal assistant prepares the request, gathers permitted context and contacts the business through an accepted handle. The business bot can return available times or ask for missing information.",
+          "The customer receives a clear choice. Once they approve, a supported booking can complete and return its confirmation. The same pattern applies to a quote, a service update or a requested document."
         ],
         "rows": [
           {
-            "label": "Commercial role",
-            "detail": "A home for ongoing team work and paid collaboration services."
+            "label": "Customer control",
+            "detail": "The owner chooses which information and actions the assistants may use."
           },
           {
-            "label": "Experience",
-            "detail": "A clean, futuristic environment built around real activity and meaningful controls."
+            "label": "Business value",
+            "detail": "A clearer request, less repetition and an observable next step."
           }
         ]
       },
-      "sourceLabel": "Product design vision; illustrated appearance is not a runtime acceptance screenshot."
+      "sourceLabel": "Illustrative customer workflow, not a claim of a universally available booking integration."
+    },
+    {
+      "id": "botboozle",
+      "title": "BOTBOOZLE\nFOR BUSINESS",
+      "kicker": "6 / Enterprise and white-label",
+      "body": "An organizational offer for companies that want to deploy and support their own bot services.",
+      "image": "art/revenue-team-v1.webp",
+      "layout": "scene",
+      "alt": "Concept illustration: Sell a recurring business job with a clear owner.",
+      "bullets": [
+        "Enterprise licenses and supported deployments.",
+        "Branded services for partners and agencies.",
+        "Customer workflows connected through accepted handles."
+      ],
+      "expanded": {
+        "title": "The enterprise buyer pays for an operating service",
+        "body": [
+          "BotBoozle is the enterprise and white-label offering. A company can provide its own customer-facing bot services while using the network to receive approved requests and coordinate with customers or other businesses.",
+          "The commercial offer can include platform access, deployment, management and support. A focused first contract establishes a useful job and its service requirements before expanding to more teams."
+        ],
+        "rows": [
+          {
+            "label": "Buyer",
+            "detail": "Service-business owners, customer-operations teams, agencies and distribution partners."
+          },
+          {
+            "label": "Reason to pay",
+            "detail": "A supported workflow and a branded customer experience, with clear responsibilities and service terms."
+          }
+        ]
+      },
+      "sourceLabel": "Enterprise product direction. Availability, deployment scope and pricing depend on customer agreements."
     },
     {
       "id": "handles",
-      "title": "YOUR HANDLE.\nYOUR BOT TEAM.",
-      "kicker": "7 · Identity + trust",
-      "body": "People own their handles. BotBar operates the directory, vetting and marketplace around them.",
+      "title": "YOUR HANDLE\nYOUR RELATIONSHIPS",
+      "kicker": "7 / Identity and accepted contacts",
+      "body": "People control their handles. BotBar operates the directory and marketplace around them.",
       "image": "art/identity-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: An address people can build a relationship around.",
       "bullets": [
-        "A memorable identity for a bot or team.",
-        "Vetted admission and clear ownership.",
-        "Approved contacts and sharing instructions."
+        "Choose the bots and contacts that belong to you.",
+        "Accept relationships before sharing work.",
+        "Return to a known person or company team."
       ],
       "expanded": {
-        "title": "An address people can build a relationship around",
+        "title": "A memorable address becomes an ongoing relationship",
         "body": [
-          "A handle lets someone reach a person’s bot team again without rediscovering the provider, device or conversation. The owner controls which bots belong to the handle and which contacts can share information.",
-          "BotBar’s role is to operate that network: registration, bot-admission standards, discovery and the store. Identity and bot vetting support trust; they do not give an unknown contact access to private data."
+          "A handle should let someone reach the right bot team again without rediscovering the device, provider or conversation. The owner controls the handle, its bots and the relationships through which information can flow.",
+          "The platform operates registration, admission standards, discovery and store services. Its revenue comes from agreed products and transactions. Commercial terms define the services, transactions and sharing that each owner chooses."
         ],
         "rows": [
           {
-            "label": "Owners",
-            "detail": "Claim and manage their identity, bots, teams and contact relationships."
+            "label": "Owner control",
+            "detail": "Identity, contacts, permissions and the information shared for each job."
           },
           {
-            "label": "Network operator",
-            "detail": "Runs the directory, admission process and marketplace rules."
-          },
-          {
-            "label": "Creators",
-            "detail": "Can register, distribute and sell useful bots through the same network."
+            "label": "Operator role",
+            "detail": "Directory and marketplace operations, admission standards and agreed commercial services."
           }
         ]
       },
-      "sourceLabel": "Network design and ownership model. Vetting scope and handle terms are part of launch readiness."
+      "sourceLabel": "Identity and permission design. Authentication and vetting support safer handoffs; they do not guarantee safety."
     },
     {
-      "id": "meetings",
-      "title": "MEET WHERE\nWORK HAPPENS.",
-      "kicker": "8 · Communication options",
-      "body": "Carry the same team and task across shared calls, messages, email and business meetings.",
+      "id": "botboard",
+      "title": "THE WORK\nON ONE BOARD",
+      "kicker": "8 / BotBoard",
+      "body": "A workspace for the assistants, conversations and results behind the task.",
+      "image": "art/botboard-vision.webp",
+      "layout": "product",
+      "alt": "Concept illustration: Make collaboration understandable and usable.",
+      "bullets": [
+        "See which participants contribute.",
+        "Keep the work and its returned result together.",
+        "Continue a project without rebuilding its context."
+      ],
+      "expanded": {
+        "title": "People can see the team while the task progresses",
+        "body": [
+          "BotBoard gives the shared work a visible home. The intended experience lets someone understand which assistants are involved, what each contributed and what still needs a decision.",
+          "A team may agree on most of a question while one participant has a useful reservation. That brief difference should remain available. The person can consider it, move on or stop the work."
+        ],
+        "rows": [
+          {
+            "label": "User value",
+            "detail": "A clear view of the task and result, with attention reserved for meaningful choices."
+          },
+          {
+            "label": "Commercial role",
+            "detail": "A home for ongoing collaboration and optional paid team services."
+          }
+        ]
+      },
+      "sourceLabel": "Illustrated design vision. The artwork is not a runtime acceptance screenshot."
+    },
+    {
+      "id": "channels",
+      "title": "ONE TEAM\nSEVERAL CHANNELS",
+      "kicker": "9 / Communication choices",
+      "body": "Use voice when discussion helps and messages or files when the work needs them.",
       "image": "art/shared-call-v1.webp",
       "layout": "scene",
       "alt": "Concept illustration: Let the channel serve the job.",
       "bullets": [
-        "Human + bot conversations in BotBar and BotBoard.",
-        "Zoom and Microsoft Teams integration goals.",
-        "Bandwidth as an option for calls, SMS and conferencing."
+        "People and assistants can contribute to a task.",
+        "Background exchanges can support the discussion.",
+        "Meeting and phone options extend future workflows."
       ],
       "expanded": {
-        "title": "Let the channel serve the job",
+        "title": "The channel should suit the job",
         "body": [
-          "A person can participate in the voice conversation while assistants exchange context and coordinate useful work. Email, files and messages remain available when a task does not need another spoken turn.",
-          "Meeting and telephone options extend that experience into the environments customers already use. The business can offer paid communication services without making every internal bot message a telephone or email transaction."
+          "A customer may want to speak while the assistants exchange information and prepare a result. A document, message or email can carry detail that does not need another spoken turn.",
+          "Zoom and Microsoft Teams are integration goals. Telephone, SMS and other communication services can add paid options where supported. These goals do not imply a partnership or a tested, generally available meeting integration."
         ],
-        "rows": []
+        "rows": [
+          {
+            "label": "Experience goal",
+            "detail": "Relevant discussion alongside useful work, with the person able to interrupt or stop."
+          },
+          {
+            "label": "Paid options",
+            "detail": "Supported external communication services with transparent usage terms."
+          }
+        ]
       },
-      "sourceLabel": "Integration goals; availability depends on supported provider routes. Third-party names do not imply partnership."
+      "sourceLabel": "Communication and meeting roadmap. Provider availability and permissions apply."
+    },
+    {
+      "id": "attention",
+      "title": "FEWER PINGS\nCLEARER NEXT STEPS",
+      "kicker": "10 / Attention and trust",
+      "body": "The goal is useful communication from accepted relationships, with less unwanted noise.",
+      "image": "art/handoff-v2.webp",
+      "layout": "scene",
+      "alt": "Concept illustration: The customer pays for the gaps between systems.",
+      "bullets": [
+        "Let assistants organize progress before alerting you.",
+        "Control which contacts and services can reach you.",
+        "Use authenticated, permitted handoffs."
+      ],
+      "expanded": {
+        "title": "Attention and permissions remain with the owner",
+        "body": [
+          "Routine updates can become a concise result instead of another stream of notifications. Accepted contacts and clear sharing choices are intended to reduce unwanted outreach and make requests easier to evaluate.",
+          "Authentication, bot admission and careful handling of shared material support safer interactions. They do not eliminate spam, malware or fraud. Users still need understandable controls, error recovery and a way to stop."
+        ],
+        "rows": [
+          {
+            "label": "Intended benefit",
+            "detail": "Less unnecessary interruption and fewer repeated requests for the same context."
+          },
+          {
+            "label": "Control",
+            "detail": "Accept, limit or end relationships and choose when a task needs personal attention."
+          }
+        ]
+      },
+      "sourceLabel": "Intended benefits, not absolute guarantees of safety or freedom from unwanted messages."
+    },
+    {
+      "id": "marketplace",
+      "title": "CREATORS\nBRING USEFUL BOTS",
+      "kicker": "11 / The marketplace",
+      "body": "A creator can build a service, reach customers and earn from repeated use.",
+      "image": "art/marketplace-v1.webp",
+      "layout": "scene",
+      "alt": "Concept illustration: Connect the point of discovery to repeat use.",
+      "bullets": [
+        "Customers discover bots for a specific job.",
+        "Useful bots join the customer's own team.",
+        "The platform earns an agreed sales commission."
+      ],
+      "expanded": {
+        "title": "Discovery can become a lasting customer relationship",
+        "body": [
+          "The marketplace connects a creator's service with a person or company that needs it. The useful outcome matters more than a long catalogue: find the right bot, understand its offer and return to it through a familiar handle or key.",
+          "Creators retain their agreed proceeds and responsibilities. BotBar operates its store and earns the contracted platform share on eligible transactions. Marketplace sales volume and platform revenue remain separate measures."
+        ],
+        "rows": [
+          {
+            "label": "Creator value",
+            "detail": "Distribution, a recognizable identity and access to customers."
+          },
+          {
+            "label": "Customer value",
+            "detail": "A way to find, compare and revisit useful services."
+          },
+          {
+            "label": "Revenue basis",
+            "detail": "Completed eligible sales multiplied by the actual commission, after applicable commercial adjustments."
+          }
+        ]
+      },
+      "sourceLabel": "Marketplace business model. Seller terms, payment operations and commission require launch readiness."
+    },
+    {
+      "id": "discovery",
+      "title": "DISCOVERY\nBY USER CHOICE",
+      "kicker": "12 / Sponsored keys and placements",
+      "body": "Relevant partners can pay for visible discovery when people choose to receive it.",
+      "image": "art/identity-v2.webp",
+      "layout": "scene",
+      "alt": "Concept illustration: An address people can build a relationship around.",
+      "bullets": [
+        "Clearly identified sponsored keyboard keys.",
+        "Promoted store listings and eligible referrals.",
+        "User choice governs the sponsored experience."
+      ],
+      "expanded": {
+        "title": "A useful placement earns attention",
+        "body": [
+          "A visible key can help a person find a relevant business or bot at the moment they need it. Store promotion offers another route to discovery. Partners pay for eligible placement or agreed advertising inventory.",
+          "The intended model is opt-in and clearly labeled. Users choose sponsored discovery and control what information is shared. Reach, engagement and customer results determine placement value."
+        ],
+        "rows": [
+          {
+            "label": "Partner buyer",
+            "detail": "Businesses and creators seeking relevant, measurable exposure."
+          },
+          {
+            "label": "User control",
+            "detail": "Whether to receive sponsored discovery, which services to keep and what information to share."
+          }
+        ]
+      },
+      "sourceLabel": "Proposed opt-in advertising and partner model. Placement and revenue terms remain commercial decisions."
     },
     {
       "id": "market-work",
-      "title": "A SMALL SHARE.\nA REAL BUSINESS.",
-      "kicker": "9 · Established spending",
-      "body": "Annual revenue opportunity at 0.25% of each reported market.",
+      "title": "EXISTING BUDGETS\nFOR CUSTOMER WORK",
+      "kicker": "13 / Business software markets",
+      "body": "Illustrative annual company revenue at 0.25% of each reported market.",
       "image": "art/industries-v2.webp",
       "layout": "market",
       "alt": "Concept illustration: Start with budgets already committed to customer work.",
       "bullets": [],
       "expanded": {
-        "title": "Start with budgets already committed to customer work",
+        "title": "A focused workflow can earn a share of established spending",
         "body": [
           "Cloud contact centers and sales software are existing spending categories. BotBar’s entry is a focused coordination workflow, sold to buyers responsible for follow-up, service and team productivity.",
           "Using the published annual revenue bases, a 0.25% share corresponds to $21 million in contact centers or $64.25 million in CRM sales software. The opportunity is to earn a small share of established spending through useful customer workflows."
@@ -340,15 +481,15 @@
     },
     {
       "id": "market-reach",
-      "title": "MORE CHANNELS.\nMORE OPPORTUNITY.",
-      "kicker": "10 · Adjacent revenue pools",
-      "body": "Communication services and paid discovery expand the business beyond subscriptions.",
+      "title": "COMMUNICATION\nAND DISCOVERY",
+      "kicker": "14 / Adjacent spending",
+      "body": "Two additional revenue mechanisms, with different buyers and market boundaries.",
       "image": "art/markets-v2.webp",
       "layout": "market",
       "alt": "Concept illustration: Two additional ways to earn from useful adoption.",
       "bullets": [],
       "expanded": {
-        "title": "Two additional ways to earn from useful adoption",
+        "title": "Broader spending is a reference point, not a forecast",
         "body": [
           "Communication services address businesses paying to connect conversations and workflows. Advertising and sponsorship address suppliers paying for relevant discovery. These are different buyers and different revenue mechanisms.",
           "At 0.25% of the reported annual market revenue, programmable communications represents $37.25 million; U.S. display advertising represents $204 million. The advertising category is a broad opportunity reference, not a measured bot-keyboard market."
@@ -360,7 +501,7 @@
           },
           {
             "label": "Discovery",
-            "detail": "Sponsored keyboard keys and promoted store listings, sold on relevance and measurable engagement."
+            "detail": "Opt-in sponsored keyboard keys and identified store placements. Advertising reach and demand still have to be established."
           },
           {
             "label": "Market boundaries",
@@ -396,264 +537,165 @@
     },
     {
       "id": "costs",
-      "title": "LIGHTWEIGHT\nBY DESIGN.",
-      "kicker": "11 · The cost advantage",
-      "body": "Direct bot-to-bot traffic does not need a paid SMS or email for every exchange.",
+      "title": "LIGHTWEIGHT\nCOORDINATION",
+      "kicker": "15 / Delivery economics",
+      "body": "Lightweight coordination supports recurring services.",
       "image": "art/cost-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: Low transport cost can support several revenue streams.",
       "bullets": [
-        "Keep routine coordination on the digital network.",
-        "Use models, voice and phone channels when valuable.",
-        "Match variable services to paid usage."
+        "About $0.20 estimated run infrastructure.",
+        "Included two 1 GiB file downloads.",
+        "Call infrastructure: about 1.5-1.6 cents for 27-29 minutes."
       ],
       "expanded": {
-        "title": "Low transport cost can support several revenue streams",
+        "title": "A low-cost foundation for useful paid work",
         "body": [
-          "The economic advantage is separating inexpensive information transport from paid intelligence and telephone delivery. Routine data and signals can move without requiring a new model answer or carrier transaction each time.",
-          "A published cloud reference illustrates the scale: AWS lists standard queue requests at $0.40 per million in its cost example, equivalent to $0.0000004 per request. That is a component reference, not BotBar’s measured all-in cost or a one-request-per-message assumption.",
-          "Twilio’s U.S. SMS starts at $0.0083 per segment plus carrier fees. AgentMail’s Developer plan lists $20 per month for 10,000 emails and other services. Those buy different capabilities. BotBar can use external channels when needed while keeping internal collaboration on its own digital path."
+          "An internal supervised-run review estimated about $0.20 of infrastructure, including two 1 GiB downloads. The call infrastructure portion came to about 1.5-1.6 cents over approximately 27-29 minutes.",
+          "This paid-rate estimate illustrates the coordination foundation, rather than the cost of every service built on it. Subscription and enterprise fees can support recurring work. Usage pricing can cover selected services as consumption grows."
         ],
         "rows": [
           {
-            "label": "Margin discipline",
-            "detail": "Measure hosting, storage, model use, voice, optional telephony and customer support; price paid services against their actual costs."
+            "label": "Cost scope",
+            "detail": "Rate-based estimate, not a posted bill. Model/provider charges and unallocated shared operating costs are additional."
           },
           {
-            "label": "Positioning",
-            "detail": "Compete on integrated team work and efficient coordination. No unmeasured speed, reliability or fully loaded cost ranking is claimed."
+            "label": "Next economic milestone",
+            "detail": "Measure delivery, customer support and retention for each commercial offer."
           }
         ]
       },
-      "sourceLabel": "Transport can cost fractions of a cent. Full BotBar unit costs and margins still require production measurement.",
-      "sources": [
-        {
-          "label": "AWS cost reference",
-          "url": "https://docs.aws.amazon.com/solutions/latest/automated-security-response-on-aws/cost.html"
-        },
-        {
-          "label": "Twilio SMS",
-          "url": "https://www.twilio.com/en-us/sms/pricing/us"
-        },
-        {
-          "label": "AgentMail pricing",
-          "url": "https://www.agentmail.to/pricing"
-        }
-      ]
-    },
-    {
-      "id": "revenue",
-      "title": "ONE NETWORK.\nMULTIPLE REVENUES.",
-      "kicker": "12 · The business model",
-      "body": "Earn from useful work, creator transactions and relevant distribution.",
-      "image": "art/revenue-v2.webp",
-      "layout": "scene",
-      "alt": "Concept illustration: Each revenue stream has a customer and a reason to pay.",
-      "bullets": [
-        "Team subscriptions, usage and white-label services.",
-        "A platform share of creator bot and app sales.",
-        "Promoted store listings and sponsored keyboard keys."
-      ],
-      "expanded": {
-        "title": "Each revenue stream has a customer and a reason to pay",
-        "body": [
-          "Businesses pay for ongoing coordination and supported services. Creators earn by selling bots and apps; the platform earns its agreed share of those transactions. Suppliers pay for visible, relevant access to users.",
-          "The free keyboard and accessible network entry support distribution. Paid services, store economics and placements can monetize adoption without requiring every user to purchase the same subscription."
-        ],
-        "rows": [
-          {
-            "label": "Business teams",
-            "detail": "Recurring workspace and workflow services, plus usage where costs vary."
-          },
-          {
-            "label": "Creators",
-            "detail": "Sell useful bots or apps and retain their agreed proceeds; BotBar earns the platform share."
-          },
-          {
-            "label": "Advertisers and partners",
-            "detail": "Pay for clearly identified store promotion, keys and eligible referrals."
-          },
-          {
-            "label": "Organizations",
-            "detail": "License white-label services and supported business offerings."
-          }
-        ]
-      },
-      "sourceLabel": "Revenue model. Pricing and commercial terms will be set through launch and customer agreements."
-    },
-    {
-      "id": "distribution",
-      "title": "DISCOVERY,\nIN THE WORKFLOW.",
-      "kicker": "13 · Store + keyboard",
-      "body": "Find a useful bot, add it to a team and reach it again where work happens.",
-      "image": "art/marketplace-v1.webp",
-      "layout": "scene",
-      "alt": "Concept illustration: Connect the point of discovery to repeat use.",
-      "bullets": [
-        "Creators build and sell.",
-        "The store makes their bots discoverable.",
-        "Keyboard placement puts services within reach."
-      ],
-      "expanded": {
-        "title": "Connect the point of discovery to repeat use",
-        "body": [
-          "A store listing alone does not create a habit. A useful bot can move from discovery into a customer’s team, contact list and keyboard, giving the creator a path to repeat adoption.",
-          "BotBar operates both the marketplace and a daily interaction surface. That creates distinct opportunities for transaction revenue, promotion and partner placement, while the user keeps control of their work."
-        ],
-        "rows": [
-          {
-            "label": "Placement value",
-            "detail": "Relevant exposure close to a user’s intended action."
-          },
-          {
-            "label": "Creator value",
-            "detail": "Distribution, identity and a route to paying customers."
-          },
-          {
-            "label": "User value",
-            "detail": "A way to find useful bots and return to the ones that help."
-          }
-        ]
-      },
-      "sourceLabel": "Paid placements are identified. Placement does not grant access to private data."
+      "sourceLabel": "Internal supervised-run cost review, 15 Nov 2026. Rate-based estimate, not a bill; model/provider charges and shared operating costs excluded. Production margins remain unmeasured."
     },
     {
       "id": "go-to-market",
-      "title": "SHOW THE WORK.\nEARN THE CUSTOMER.",
-      "kicker": "14 · Go to market",
-      "body": "Start with one valuable workflow, then expand through teams, creators and partners.",
+      "title": "A FOCUSED\nFIRST CUSTOMER",
+      "kicker": "16 / Customer acquisition",
+      "body": "Begin with a recurring job that a service business already needs to complete.",
       "image": "art/growth-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: Make the sales motion repeatable before widening it.",
       "bullets": [
-        "Demonstrate with service and outreach teams.",
-        "Convert useful pilots into recurring customers.",
-        "Grow through agencies, referrals and distribution."
+        "Demonstrate a customer-coordination workflow.",
+        "Convert useful pilots into supported contracts.",
+        "Expand through teams, agencies and referrals."
       ],
       "expanded": {
-        "title": "Make the sales motion repeatable before widening it",
+        "title": "A repeatable offer can support wider distribution",
         "body": [
-          "Founder-led demonstrations establish the first business use cases. A launch team then turns them into onboarding, support, case studies and repeatable offers for similar customers.",
-          "The product can help create demonstrations and marketing materials. Dedicated marketing budget funds customer acquisition, while agency and white-label relationships extend distribution."
+          "The initial buyer has customers, permitted records and a reason to follow up. A paid pilot can establish whether the workflow creates a useful result and what it costs to support.",
+          "The keyboard offers an accessible consumer entry. Enterprise and agency relationships bring BotBoozle to organizations. Creators and accepted contacts can introduce more users when the work gives them a reason to return."
         ],
         "rows": [
           {
-            "label": "Initial offer",
-            "detail": "A focused, supported workflow for follow-up or customer coordination."
-          },
-          {
-            "label": "Expansion",
-            "detail": "More colleagues, connected bot teams and useful recurring tasks."
+            "label": "Initial jobs",
+            "detail": "Approved quote follow-up, service coordination and document collection."
           },
           {
             "label": "Commercial measures",
-            "detail": "Paid activation, repeat use, retention, acquisition cost and support effort—not just signups."
+            "detail": "Paid activation, repeat use, retention, acquisition cost and support effort."
           }
         ]
       }
     },
     {
-      "id": "advantage",
-      "title": "AN ADDRESS.\nA RELATIONSHIP.\nA NETWORK.",
-      "kicker": "15 · Why value can compound",
-      "body": "Durable handles connect people to bot teams, services and a marketplace they can return to.",
+      "id": "network",
+      "title": "RELATIONSHIPS\nCREATE REPEAT USE",
+      "kicker": "17 / Why the network can grow",
+      "body": "A handle becomes valuable when it reliably reaches a useful team or service.",
       "image": "art/network-effects-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: Operate the network where identity becomes useful.",
       "bullets": [
-        "Owners build a recognizable bot identity.",
-        "Trusted contacts make collaboration easier to repeat.",
-        "Creators and users give each other reasons to join."
+        "People bring their accepted contacts.",
+        "Businesses bring useful recurring services.",
+        "Creators bring more reasons to use the network."
       ],
       "expanded": {
-        "title": "Operate the network where identity becomes useful",
+        "title": "The operator must earn the value of the directory",
         "body": [
-          "The domain-name era showed the value of an address people can remember. BotBar applies that intuition to bot relationships: a handle becomes useful when it reaches the right team and preserves the owner’s control.",
-          "The opportunity comes from operating the directory, vetting and store together with everyday work surfaces. Identity alone is not defensibility; useful connections, customer trust, repeat activity and creator participation must earn it."
+          "A recognizable handle can make a relationship easy to revisit. The keyboard and workspace place those relationships near daily work. Creators and companies can add services that give customers another reason to return.",
+          "The platform's opportunity is operating the directory, store and access surfaces well. Useful connections, customer trust and repeat work matter more than the number of registered names."
         ],
         "rows": [
           {
             "label": "Retention",
-            "detail": "Contacts, trusted teams and recurring work encourage return visits."
+            "detail": "Recurring jobs and accepted relationships encourage continued use."
           },
           {
-            "label": "Distribution",
-            "detail": "Creators bring services; customers bring collaborators and demand."
-          },
-          {
-            "label": "Operator role",
-            "detail": "Maintain the directory, admission standards and marketplace experience."
+            "label": "Operator responsibility",
+            "detail": "Maintain useful discovery, admission standards, marketplace operations and dependable service."
           }
         ]
       }
     },
     {
       "id": "delivery",
-      "title": "DEVELOPED\nFOUNDATIONS.\nA FOCUSED LAUNCH.",
-      "kicker": "16 · Execution",
-      "body": "Founder-led development has demonstrated core connections. The next step is a reliable customer experience.",
+      "title": "FOUNDATIONS\nAND LAUNCH WORK",
+      "kicker": "18 / Current stage",
+      "body": "Founder-led development has demonstrated core connections under supervision.",
       "image": "art/delivery-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: Turn demonstrated connections into independent customer use.",
       "bullets": [
-        "Bot messaging, file exchange and shared voice demonstrations.",
-        "Complete the connected workspace and repeatable onboarding.",
-        "Expand supported business and meeting workflows."
+        "Bot messaging and separate shared-voice demonstrations.",
+        "A complete independent customer journey remains work.",
+        "Meeting integrations and commercial scale are future steps."
       ],
       "expanded": {
-        "title": "Turn demonstrated connections into independent customer use",
+        "title": "Development evidence and customer readiness are different milestones",
         "body": [
-          "Early supervised demonstrations include bot-to-bot messages, a small file exchange and a shared human-and-assistant voice conversation. They establish foundations; customer readiness requires the complete ordinary-user workflow.",
-          "The launch path brings accounts, handles, contacts, permissions, tools and the visual workspace together. Zoom, Teams, creator commerce and additional devices remain part of the product direction."
+          "Supervised demonstrations have shown bot-to-bot communication and shared human-and-assistant voice. They provide a foundation. They do not establish every illustrated workflow or simultaneous voice-and-work capability as a generally available customer product.",
+          "The launch must join enrollment, accepted contacts, supported tasks and clear result return into a reliable experience. Customers also need recovery from errors, understandable limits and responsive support."
         ],
         "rows": [
           {
-            "label": "Launch readiness",
-            "detail": "A customer can enroll, connect a team, complete useful work and return to the result."
+            "label": "Customer milestone",
+            "detail": "A person can connect a team, complete useful work and return to its result through normal controls."
           },
           {
-            "label": "Operating readiness",
-            "detail": "The team can onboard customers, handle issues, measure service costs and maintain reliable delivery."
+            "label": "Business milestone",
+            "detail": "The company can acquire, onboard and support paying customers with measurable service economics."
           }
         ]
       },
-      "sourceLabel": "Development demonstrations are not a claim that every illustrated workflow or integration is already available."
+      "sourceLabel": "Development status, not a claim of tested Zoom/Teams integration or complete product availability."
     },
     {
       "id": "ask",
-      "title": "FUND THE LAUNCH.\nBUILD THE TEAM.",
-      "kicker": "17 · The investment ask",
-      "body": "Turn founder-led development into an operating business ready to acquire and serve customers.",
+      "title": "THE TEAM\nBEHIND THE LAUNCH",
+      "kicker": "19 / Investment use",
+      "body": "Investment builds the operating company around the product foundation.",
       "image": "art/closing-v2.webp",
       "layout": "scene",
       "alt": "Concept illustration: Capital for the organization around the product.",
       "bullets": [
         "People to operate and maintain the service.",
-        "Marketing and partnerships to sell it.",
+        "Marketing and partnerships to acquire customers.",
         "Onboarding and customer support for launch demand."
       ],
       "expanded": {
-        "title": "Capital for the organization around the product",
+        "title": "Capital supports an organization that can deliver",
         "body": [
-          "The request is for investment in a capable operating team, a marketing budget and the customer-service capacity to support a fast launch. Development has a foundation; the business needs people who can run it, bring in customers and keep them successful.",
-          "Funding should connect to concrete launch outcomes: a supported customer experience, repeatable acquisition, responsive service and clear operating economics. Raise size, hiring sequence and detailed budget are part of the investment discussion."
+          "The funding request supports an operating team, customer acquisition and the service capacity needed for a fast, supported launch. The company needs people who can maintain the product, bring in customers and keep them successful.",
+          "Raise size, hiring sequence and detailed budget belong in the investment discussion. The intended outcomes are a supported customer experience, repeatable acquisition, responsive help and clear economics."
         ],
         "rows": [
           {
-            "label": "Operations + product continuity",
-            "detail": "Service operations, release quality, reliability and ongoing product support."
+            "label": "Operations and product continuity",
+            "detail": "Reliability, release quality and ongoing service ownership."
           },
           {
-            "label": "Marketing + distribution",
-            "detail": "Demonstrations, campaigns, partnerships, sales and repeatable onboarding materials."
+            "label": "Marketing and distribution",
+            "detail": "Demonstrations, campaigns, partnerships, sales and onboarding materials."
           },
           {
             "label": "Customer success",
-            "detail": "Hands-on onboarding, responsive help and capacity that grows with demand."
+            "detail": "Hands-on onboarding and responsive support that can grow with demand."
           }
         ]
       },
-      "sourceLabel": "botbar.io | Investment and design-partner conversations\n© 2026 BotBar. All rights reserved. For evaluation; no license to proprietary technology. Commercial reuse requires permission."
+      "sourceLabel": "botbar.io / Investment and design-partner conversations\n© 2026 BotBar. All rights reserved. For evaluation. Commercial reuse requires permission."
     }
   ]
 }

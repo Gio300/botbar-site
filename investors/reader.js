@@ -9,7 +9,7 @@
   const fullscreen = byId('fullscreen-button');
   const mobileCopy = byId('mobile-copy');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const manifestUrl = new URL('./deck.json?v=2', document.baseURI);
+  const manifestUrl = new URL('./deck.json?v=3', document.baseURI);
   const markUrl = new URL('../assets/botbar-mark.svg', document.baseURI).href;
   let slides = [], pages = [], entries = [], current = -1, animation = null, loading = false;
 
