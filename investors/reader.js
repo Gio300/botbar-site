@@ -9,7 +9,7 @@
   const fullscreen = byId('fullscreen-button');
   const mobileCopy = byId('mobile-copy');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const manifestUrl = new URL('./deck.json', document.baseURI);
+  const manifestUrl = new URL('./deck.json?v=2', document.baseURI);
   const markUrl = new URL('../assets/botbar-mark.svg', document.baseURI).href;
   let slides = [], pages = [], entries = [], current = -1, animation = null, loading = false;
 
@@ -30,7 +30,8 @@
     } catch { return null; }
   }
 
-  function textContent(slide, titleTag = 'h2') {
+  function textContent(slide, titleTag = 'h2', expanded = false) {
+    if (expanded && slide.expanded) slide = { ...slide.expanded, metrics:slide.metrics, sourceLabel:slide.sourceLabel, sources:slide.sources };
     const copy = element('div', 'bb-copy');
     if (slide.kicker) copy.append(element('p', 'bb-kicker', slide.kicker));
     copy.append(element(titleTag, 'bb-slide-title', slide.title));
@@ -38,6 +39,19 @@
     const paragraphs = Array.isArray(slide.body) ? slide.body : String(slide.body || '').split(/\n\s*\n/);
     paragraphs.filter(value => typeof value === 'string' && value.trim()).forEach(value => body.append(element('p', '', value)));
     copy.append(body);
+    if (Array.isArray(slide.metrics)) {
+      const metrics = element('div', 'bb-market-metrics');
+      slide.metrics.forEach(metric => {
+        const item = element('section', 'bb-market-metric');
+        item.append(element('h3', '', metric.label), element('p', 'bb-market-scope', metric.scope));
+        const values = element('p', 'bb-market-values');
+        values.append(element('strong', '', metric.market), element('span', '', ' × 0.25% = '), element('strong', 'bb-market-share', metric.share));
+        item.append(values);
+        metrics.append(item);
+      });
+      if (expanded) copy.insertBefore(metrics, body);
+      else copy.append(metrics);
+    }
     if (Array.isArray(slide.bullets) && slide.bullets.length) {
       const list = element('ul', 'bb-bullets');
       slide.bullets.filter(value => typeof value === 'string').forEach(value => list.append(element('li', '', value)));
@@ -66,13 +80,26 @@
       } else source.textContent = slide.sourceLabel;
       copy.append(source);
     }
+    if (Array.isArray(slide.sources)) {
+      const links = element('p', 'bb-citations');
+      slide.sources.forEach((source, i) => {
+        const url = safeUrl(source.url);
+        if (!url) return;
+        if (i) links.append(document.createTextNode(' · '));
+        const link = element('a', '', source.label);
+        link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        links.append(link);
+      });
+      copy.append(links);
+    }
     return copy;
   }
 
   function makePage(slide, index, total) {
     const page = element('article', 'bb-slide' + (index === 0 ? ' bb-slide--cover' : ''));
-    const layouts = ['scene','editorial','product','sequence','economics','revenue'];
+    const layouts = ['scene','editorial','product','sequence','economics','revenue','market'];
     page.classList.add('bb-layout-' + (layouts.includes(slide.layout) ? slide.layout : 'editorial'));
+    if (slide.layout === 'market') page.classList.add('bb-layout-scene');
     page.hidden = true;
     page.inert = true;
     page.setAttribute('role', 'group');
@@ -138,9 +165,10 @@
     next.disabled = index === slides.length - 1;
     byId('page-counter').textContent = `${String(index + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
     entries.forEach((entry, i) => i === index ? entry.setAttribute('aria-current', 'page') : entry.removeAttribute('aria-current'));
-    mobileCopy.replaceChildren(textContent(slides[index]));
+    mobileCopy.replaceChildren(textContent(slides[index], 'h2', true));
     if (slides[index].caption) mobileCopy.append(element('p', 'bb-caption', slides[index].caption));
     mobileCopy.hidden = false;
+    if (animate && window.matchMedia('(max-width: 760px)').matches) window.scrollTo({top:0, behavior:'instant'});
     byId('page-announcement').textContent = `Page ${index + 1} of ${slides.length}. ${slides[index].title}`;
     if (updateUrl) {
       const url = new URL(location.href);
