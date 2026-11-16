@@ -17,12 +17,17 @@
   .nav-row button { flex:1; min-height:76px; font-size:30px; background:#d7ecef; border:0; border-radius:18px; font-weight:800; color:#081114; }
   .play { width:100%; min-height:96px; font-size:36px; letter-spacing:.08em; background:var(--go); border:0; border-radius:18px; font-weight:800; color:#081114; margin-bottom:12px; }
   .play.stop { background:var(--stop); color:#fff; }
-  .source { background:var(--card); border:2px solid var(--line); border-radius:16px; padding:10px 12px; margin-bottom:12px; font-size:15px; }
-  .source .now { font-size:22px; font-weight:800; color:var(--acc); }
-  .talk { width:100%; min-height:110px; border-radius:20px; border:4px solid #553; background:#2a2016; color:#ffd9c9; font-size:28px; font-weight:900; margin-bottom:12px; }
-  .hear { width:100%; min-height:70px; border-radius:18px; border:3px solid #345; background:#14222a; color:#bfe6ff; font-size:22px; font-weight:800; margin-bottom:12px; }
-  .hear.on { background:#2a8fd6; border-color:#fff; color:#00121f; }
-  .talk.on { background:var(--talk); border-color:#fff; color:#160600; box-shadow:0 0 22px #ff6a3d99; }
+  .zoom-panel { background:var(--card); border:2px solid var(--line); border-radius:16px; padding:12px; margin-bottom:12px; }
+  .zoom-panel h2 { margin:0 0 10px; font-size:18px; letter-spacing:.04em; }
+  .zoom-panel label { display:block; font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .zoom-panel input { width:100%; margin-top:4px; min-height:44px; border-radius:10px; border:2px solid var(--line); background:#0d1518; color:var(--text); font-size:16px; padding:8px 10px; }
+  .zoom-panel .soon { width:100%; min-height:48px; margin-top:4px; border:0; border-radius:12px; background:#2a3d44; color:#8aa3ab; font-weight:800; font-size:15px; opacity:.85; cursor:not-allowed; }
+  .route { display:flex; gap:12px; margin-bottom:12px; }
+  .route button { flex:1; min-height:86px; border-radius:18px; border:3px solid var(--line); background:var(--card); color:var(--text); font-size:22px; font-weight:800; }
+  .route button small { display:block; margin-top:4px; font-size:12px; font-weight:700; letter-spacing:0; }
+  .route button[aria-checked="true"] { border-color:#fff; }
+  .route #route-auto[aria-checked="true"] { background:var(--go); color:#081114; }
+  .route #route-phone[aria-checked="true"] { background:var(--talk); color:#160600; box-shadow:0 0 22px #ff6a3d99; }
   .toggles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .tile { background:var(--card); border:3px solid var(--line); border-radius:20px; padding:10px; display:flex; flex-direction:column; gap:8px; align-items:stretch; }
   .sq { min-height:96px; border-radius:16px; border:3px solid #556; background:#223; color:#c9d; font-size:24px; font-weight:800; }
@@ -33,6 +38,7 @@
   .meter i { display:block; height:100%; width:0; background:var(--go); transition:width .15s; }
   .foot { margin-top:14px; text-align:center; color:var(--muted); font-size:13px; }
   button:active { transform:scale(.98); }
+  button:disabled { transform:none; }
 </style>
 </head>
 <body>
@@ -43,30 +49,29 @@
     <button id="next" type="button" aria-label="Next scene">&#8594;</button>
   </div>
   <button id="play" class="play" type="button">PLAY</button>
-  <div class="source">Bots are hearing: <span id="src" class="now">—</span><br><small id="srcnote">Priority: Phone talk (while ON) → Zoom → Website</small></div>
-  <button id="hear" class="hear" type="button" aria-pressed="false">HEAR BOTS: OFF<br><small>play Muse + Dots on this phone</small></button>
-  <button id="talk" class="talk" type="button" aria-pressed="false">TALK: OFF<br><small>tap to talk to the bots</small></button>
-  <div class="toggles">
-    <div class="tile">
-      <button id="muse" class="sq" type="button">Muse</button>
-      <div id="muse-st" class="st not_connected">Not connected</div>
-      <div class="meter"><i id="muse-m"></i></div>
-    </div>
-    <div class="tile">
-      <button id="dots" class="sq" type="button">Dots</button>
-      <div id="dots-st" class="st not_connected">Not connected</div>
-      <div class="meter"><i id="dots-m"></i></div>
-    </div>
+  <section class="zoom-panel" aria-label="Zoom">
+    <h2>Zoom</h2>
+    <label>Meeting ID
+      <input id="zoom-id" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" data-no-store="1">
+    </label>
+    <label>Password
+      <input id="zoom-pw" type="password" autocomplete="off" data-no-store="1">
+    </label>
+    <button class="soon" type="button" disabled aria-disabled="true">Connect to Zoom (coming soon)</button>
+  </section>
+  <div class="route" role="radiogroup" aria-label="Audio routing">
+    <button id="route-auto" type="button" role="radio" aria-checked="true">Auto<small>Zoom first, then website</small></button>
+    <button id="route-phone" type="button" role="radio" aria-checked="false">Phone<small>talk and hear on this phone</small></button>
   </div>
-  <div class="foot">Tap Muse or Dots to switch between ACTIVE (may move and speak, hears) and IDLE (silent, still hears). Not connected means the bot isn't in the room or its window wasn't found. Talk is a toggle: it stays on until you tap it again, and turns itself off if this page closes.</div>
+  <div class="toggles" id="tiles"></div>
+  <div class="foot">Tap Muse or Dots to set ACTIVE (may move and speak on the current route) or IDLE (silent everywhere, still hears). Each bot is independent. Auto follows Zoom, then the website. Phone sends your mic to the bots and plays only ACTIVE bots on this phone; your mic is not sent to Zoom. The Zoom fields are a preview and are not saved or sent.</div>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var ws = null, st = null, mic = null;
+  /* Show these bots on the remote. Add an entry here (and on the helper) to support more later. */
+  var BOTS = [{ id: "muse", label: "Muse" }, { id: "dots", label: "Dots" }];
+  var ws = null, st = null, mic = null, hear = null;
   var LABEL = { active: "ACTIVE · talks + hears", idle: "IDLE · silent, still hears", listening: "ACTIVE", hold: "IDLE", not_connected: "Not connected" };
-  var SRC = { phone: "Phone talk", zoom: "Zoom", website: "Website" };
-  /* Control key: only Johnny's remote may move the show. The key arrives once as #k=... (opened on his
-     phone from Sensai), is kept in this browser's localStorage and removed from the address bar. */
   var KEY_NAME = "botbarRemoteKey", key = null, authed = false;
   try {
     var hk = new URLSearchParams(location.hash.slice(1)).get("k");
@@ -74,28 +79,56 @@
     key = localStorage.getItem(KEY_NAME);
   } catch (e) {}
   function send(patch) { if (!authed) return; if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "control", patch: patch })); }
+  function phoneRoute() {
+    var s = (st && st.state) || {};
+    return s.route === "phone" || (!s.route && !!s.talk);
+  }
+  function botActive(id) {
+    var s = (st && st.state) || {};
+    var b = ((st && st.bots) || {})[id] || {};
+    if (b.status === "active") return true;
+    if (b.status === "idle" || b.status === "not_connected") return false;
+    return !!s.playing && s[id] === "live";
+  }
+  function renderTiles() {
+    $("tiles").innerHTML = BOTS.map(function (b) {
+      return '<div class="tile"><button id="' + b.id + '" class="sq" type="button">' + b.label + '</button>' +
+        '<div id="' + b.id + '-st" class="st not_connected">Not connected</div>' +
+        '<div class="meter"><i id="' + b.id + '-m"></i></div></div>';
+    }).join("");
+    BOTS.forEach(function (b) {
+      $(b.id).onclick = function () {
+        var s = (st && st.state) || {}, p = {};
+        p[b.id] = s[b.id] === "live" && s.playing ? "hold" : "live";
+        if (p[b.id] === "live") p.playing = true;
+        send(p);
+      };
+    });
+  }
+  function renderRoute() {
+    var phone = phoneRoute();
+    $("route-phone").setAttribute("aria-checked", phone ? "true" : "false");
+    $("route-auto").setAttribute("aria-checked", phone ? "false" : "true");
+  }
   function render() {
     if (!st) return;
     var s = st.state || {};
     $("play").textContent = s.playing ? "STOP" : "PLAY";
     $("play").classList.toggle("stop", !!s.playing);
     $("scene").textContent = "Scene " + (s.page || 1) + " / 9";
-    $("src").textContent = SRC[st.source] || st.source;
-    ["muse", "dots"].forEach(function (w) {
-      var b = (st.bots || {})[w] || {};
+    BOTS.forEach(function (b) {
+      var w = b.id, bot = (st.bots || {})[w] || {};
       var on = s.playing && s[w] === "live";
+      if (!$(w)) return;
       $(w).classList.toggle("on", on);
       $(w).setAttribute("aria-pressed", on ? "true" : "false");
-      $(w).textContent = (w === "muse" ? "Muse" : "Dots") + (on ? " · ACTIVE" : " · IDLE");
-      $(w + "-st").textContent = (LABEL[b.status] || "—") + (b.status === "not_connected" && b.why ? " (" + b.why + ")" : "") + (b.has_floor ? " · speaking turn" : "");
-      $(w + "-st").className = "st " + (b.status || "");
-      $(w + "-m").style.width = Math.min(100, Math.round((b.voice_level || 0) * 600)) + "%";
+      $(w).textContent = b.label + (on ? " · ACTIVE" : " · IDLE");
+      $(w + "-st").textContent = (LABEL[bot.status] || "—") + (bot.status === "not_connected" && bot.why ? " (" + bot.why + ")" : "") + (bot.has_floor ? " · speaking turn" : "");
+      $(w + "-st").className = "st " + (bot.status || "");
+      $(w + "-m").style.width = Math.min(100, Math.round((bot.voice_level || 0) * 600)) + "%";
     });
-    var talk = !!s.talk;
-    $("talk").classList.toggle("on", talk);
-    $("talk").setAttribute("aria-pressed", talk ? "true" : "false");
-    $("talk").innerHTML = talk ? "TALK: ON<br><small>bots hear your phone · tap to stop</small>" : "TALK: OFF<br><small>tap to talk to the bots</small>";
-    if (!talk && mic) stopMic();
+    renderRoute();
+    syncPhoneIO();
   }
   function connect() {
     fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
@@ -105,7 +138,7 @@
         if (key) ws.send(JSON.stringify({ type: "auth", k: key }));
       };
       ws.onmessage = function (ev) { if (typeof ev.data !== "string") return; try { var j = JSON.parse(ev.data); if (j.kind === "auth") { authed = !!j.ok; $("conn").textContent = authed ? "connected" : "view only (remote key rejected)"; $("conn").className = authed ? "ok" : "bad"; } if (j.kind === "status") { st = j; render(); } } catch (e) {} };
-      ws.onclose = function () { $("conn").textContent = "offline — retrying"; $("conn").className = "bad"; ws = null; stopMic(); setTimeout(connect, 2500); };
+      ws.onclose = function () { $("conn").textContent = "offline — retrying"; $("conn").className = "bad"; ws = null; stopPhoneIO(); setTimeout(connect, 2500); };
     }).catch(function () { setTimeout(connect, 4000); });
   }
   function startMic() {
@@ -116,13 +149,13 @@
       var proc = ac.createScriptProcessor(2048, 1, 1);
       var ratio = ac.sampleRate / 24000;
       proc.onaudioprocess = function (e) {
-        if (!ws || ws.readyState !== 1) return;
+        if (!ws || ws.readyState !== 1 || !phoneRoute()) return;
         var x = e.inputBuffer.getChannelData(0), n = Math.floor(x.length / ratio), out = new Int16Array(n);
         for (var i = 0; i < n; i++) { var v = x[Math.floor(i * ratio)]; out[i] = Math.max(-1, Math.min(1, v)) * 32767; }
         ws.send(out.buffer);
       };
       var mute = ac.createGain(); mute.gain.value = 0;
-      src.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played back */
+      src.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played back locally, never mixed to Zoom */
       mic = { stream: stream, ac: ac, proc: proc };
     });
   }
@@ -131,21 +164,13 @@
     try { mic.proc.disconnect(); mic.stream.getTracks().forEach(function (t) { t.stop(); }); mic.ac.close(); } catch (e) {}
     mic = null;
   }
-  $("talk").onclick = function () {
-    var on = !(st && st.state && st.state.talk);
-    if (on) startMic().then(function () { send({ talk: true }); }).catch(function () { alert("Microphone permission is needed for Talk."); });
-    else { send({ talk: false }); stopMic(); }
-  };
-  /* HEAR: plays the bots' voices (the read-only /feed audio) on this phone only. Default OFF so a phone that
-     is also in Zoom doesn't echo. Muted automatically while TALK is on, so the mic can never pick it up and loop
-     it back into the bots. Nothing here reaches Sensai's CABLE Input or speakers. */
-  var hear = null;
-  function hearMuted() { return !!(st && st.state && st.state.talk); }
+  /* Phone mode plays only ACTIVE bot voices from the read-only /feed. Nothing here reaches Sensai speakers or Zoom. */
   function startHear() {
     if (hear) return;
     var ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume();
     var out = ac.createGain(); out.connect(ac.destination);
-    hear = { ac: ac, out: out, t: { muse: 0, dots: 0 }, ws: null, hdr: null, stop: false };
+    hear = { ac: ac, out: out, t: {}, ws: null, hdr: null, stop: false };
+    BOTS.forEach(function (b) { hear.t[b.id] = 0; });
     (function open() {
       if (!hear || hear.stop) return;
       fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
@@ -153,12 +178,16 @@
         var h = hear, f = new WebSocket(cfg.ws); f.binaryType = "arraybuffer"; h.ws = f;
         f.onmessage = function (ev) {
           if (typeof ev.data === "string") { try { var j = JSON.parse(ev.data); h.hdr = j.kind === "audio" ? j : null; } catch (e) { h.hdr = null; } return; }
-          var hd = h.hdr; h.hdr = null; if (!hd || hearMuted()) return;
+          var hd = h.hdr; h.hdr = null;
+          if (!hd || !phoneRoute()) return;
+          var w = hd.which || "muse";
+          if (!botActive(w)) return; /* IDLE never plays on the phone */
           var pcm = new Int16Array(ev.data), sr = hd.sr || 24000, n = pcm.length; if (!n) return;
           var buf = h.ac.createBuffer(1, n, sr), ch = buf.getChannelData(0);
           for (var i = 0; i < n; i++) ch[i] = pcm[i] / 32768;
           var src = h.ac.createBufferSource(); src.buffer = buf; src.connect(h.out);
-          var now = h.ac.currentTime, w = hd.which === "dots" ? "dots" : "muse";
+          var now = h.ac.currentTime;
+          if (h.t[w] == null) h.t[w] = 0;
           if (h.t[w] < now + 0.05 || h.t[w] > now + 1.0) h.t[w] = now + 0.12;
           src.start(h.t[w]); h.t[w] += n / sr;
         };
@@ -167,29 +196,43 @@
     })();
   }
   function stopHear() { if (!hear) return; hear.stop = true; try { hear.ws && hear.ws.close(); hear.ac.close(); } catch (e) {} hear = null; }
-  function renderHear() {
-    var on = !!hear, m = on && hearMuted();
-    $("hear").classList.toggle("on", on); $("hear").setAttribute("aria-pressed", on ? "true" : "false");
-    $("hear").innerHTML = on ? (m ? "HEAR BOTS: ON (muted while TALK)<br><small>tap to stop</small>" : "HEAR BOTS: ON<br><small>bots play on this phone · tap to stop</small>") : "HEAR BOTS: OFF<br><small>play Muse + Dots on this phone</small>";
-    if (hear) hear.out.gain.value = m ? 0 : 1;
+  var phoneStarting = null;
+  function startPhoneIO() {
+    if (mic && hear) return Promise.resolve();
+    if (phoneStarting) return phoneStarting;
+    phoneStarting = startMic().then(function () { startHear(); phoneStarting = null; }).catch(function (e) {
+      phoneStarting = null; alert("Microphone permission is needed for Phone mode."); throw e;
+    });
+    return phoneStarting;
   }
-  $("hear").onclick = function () { if (hear) stopHear(); else startHear(); renderHear(); };
-  setInterval(renderHear, 500);
+  function stopPhoneIO() { phoneStarting = null; stopMic(); stopHear(); }
+  function syncPhoneIO() {
+    if (phoneRoute()) {
+      if (!mic || !hear) startPhoneIO().catch(function () { send({ route: "auto", talk: false }); });
+    } else {
+      stopPhoneIO();
+    }
+  }
+  function setRoute(mode) {
+    if (mode === "phone") {
+      startPhoneIO().then(function () { send({ route: "phone", talk: true }); renderRoute(); }).catch(function () {});
+    } else {
+      send({ route: "auto", talk: false }); stopPhoneIO(); renderRoute();
+    }
+  }
+  $("route-phone").onclick = function () { setRoute("phone"); };
+  $("route-auto").onclick = function () { setRoute("auto"); };
   $("prev").onclick = function () { var p = ((st && st.state.page) || 1) - 1; send({ page: Math.max(1, p) }); };
   $("next").onclick = function () { var p = ((st && st.state.page) || 1) + 1; send({ page: Math.min(9, p) }); };
   $("play").onclick = function () {
-    if (st && st.state.playing) send({ playing: false, muse: "hold", dots: "hold", talk: false });
-    else send({ playing: true });
+    if (st && st.state.playing) {
+      var p = { playing: false, route: "auto", talk: false };
+      BOTS.forEach(function (b) { p[b.id] = "hold"; });
+      send(p); stopPhoneIO();
+    } else send({ playing: true });
   };
-  ["muse", "dots"].forEach(function (w) {
-    $(w).onclick = function () {
-      var s = (st && st.state) || {}, p = {};
-      p[w] = s[w] === "live" && s.playing ? "hold" : "live";
-      if (p[w] === "live") p.playing = true;
-      send(p);
-    };
-  });
-  window.addEventListener("pagehide", function () { if (st && st.state.talk) send({ talk: false }); });
+  window.addEventListener("pagehide", function () { if (phoneRoute()) send({ route: "auto", talk: false }); stopPhoneIO(); });
+  renderTiles();
   connect();
 })();
 </script>
