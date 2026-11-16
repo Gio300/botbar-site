@@ -20,6 +20,8 @@
   .source { background:var(--card); border:2px solid var(--line); border-radius:16px; padding:10px 12px; margin-bottom:12px; font-size:15px; }
   .source .now { font-size:22px; font-weight:800; color:var(--acc); }
   .talk { width:100%; min-height:110px; border-radius:20px; border:4px solid #553; background:#2a2016; color:#ffd9c9; font-size:28px; font-weight:900; margin-bottom:12px; }
+  .hear { width:100%; min-height:70px; border-radius:18px; border:3px solid #345; background:#14222a; color:#bfe6ff; font-size:22px; font-weight:800; margin-bottom:12px; }
+  .hear.on { background:#2a8fd6; border-color:#fff; color:#00121f; }
   .talk.on { background:var(--talk); border-color:#fff; color:#160600; box-shadow:0 0 22px #ff6a3d99; }
   .toggles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .tile { background:var(--card); border:3px solid var(--line); border-radius:20px; padding:10px; display:flex; flex-direction:column; gap:8px; align-items:stretch; }
@@ -42,6 +44,7 @@
   </div>
   <button id="play" class="play" type="button">PLAY</button>
   <div class="source">Bots are hearing: <span id="src" class="now">—</span><br><small id="srcnote">Priority: Phone talk (while ON) → Zoom → Website</small></div>
+  <button id="hear" class="hear" type="button" aria-pressed="false">HEAR BOTS: OFF<br><small>play Muse + Dots on this phone</small></button>
   <button id="talk" class="talk" type="button" aria-pressed="false">TALK: OFF<br><small>tap to talk to the bots</small></button>
   <div class="toggles">
     <div class="tile">
@@ -132,6 +135,45 @@
     if (on) startMic().then(function () { send({ talk: true }); }).catch(function () { alert("Microphone permission is needed for Talk."); });
     else { send({ talk: false }); stopMic(); }
   };
+  /* HEAR: plays the bots' voices (the read-only /feed audio) on this phone only. Default OFF so a phone that
+     is also in Zoom doesn't echo. Muted automatically while TALK is on, so the mic can never pick it up and loop
+     it back into the bots. Nothing here reaches Sensai's CABLE Input or speakers. */
+  var hear = null;
+  function hearMuted() { return !!(st && st.state && st.state.talk); }
+  function startHear() {
+    if (hear) return;
+    var ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume();
+    var out = ac.createGain(); out.connect(ac.destination);
+    hear = { ac: ac, out: out, t: { muse: 0, dots: 0 }, ws: null, hdr: null, stop: false };
+    (function open() {
+      if (!hear || hear.stop) return;
+      fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
+        if (!hear) return;
+        var h = hear, f = new WebSocket(cfg.ws); f.binaryType = "arraybuffer"; h.ws = f;
+        f.onmessage = function (ev) {
+          if (typeof ev.data === "string") { try { var j = JSON.parse(ev.data); h.hdr = j.kind === "audio" ? j : null; } catch (e) { h.hdr = null; } return; }
+          var hd = h.hdr; h.hdr = null; if (!hd || hearMuted()) return;
+          var pcm = new Int16Array(ev.data), sr = hd.sr || 24000, n = pcm.length; if (!n) return;
+          var buf = h.ac.createBuffer(1, n, sr), ch = buf.getChannelData(0);
+          for (var i = 0; i < n; i++) ch[i] = pcm[i] / 32768;
+          var src = h.ac.createBufferSource(); src.buffer = buf; src.connect(h.out);
+          var now = h.ac.currentTime, w = hd.which === "dots" ? "dots" : "muse";
+          if (h.t[w] < now + 0.05 || h.t[w] > now + 1.0) h.t[w] = now + 0.12;
+          src.start(h.t[w]); h.t[w] += n / sr;
+        };
+        f.onclose = function () { if (hear === h && !h.stop) setTimeout(open, 2500); };
+      }).catch(function () { setTimeout(open, 4000); });
+    })();
+  }
+  function stopHear() { if (!hear) return; hear.stop = true; try { hear.ws && hear.ws.close(); hear.ac.close(); } catch (e) {} hear = null; }
+  function renderHear() {
+    var on = !!hear, m = on && hearMuted();
+    $("hear").classList.toggle("on", on); $("hear").setAttribute("aria-pressed", on ? "true" : "false");
+    $("hear").innerHTML = on ? (m ? "HEAR BOTS: ON (muted while TALK)<br><small>tap to stop</small>" : "HEAR BOTS: ON<br><small>bots play on this phone · tap to stop</small>") : "HEAR BOTS: OFF<br><small>play Muse + Dots on this phone</small>";
+    if (hear) hear.out.gain.value = m ? 0 : 1;
+  }
+  $("hear").onclick = function () { if (hear) stopHear(); else startHear(); renderHear(); };
+  setInterval(renderHear, 500);
   $("prev").onclick = function () { var p = ((st && st.state.page) || 1) - 1; send({ page: Math.max(1, p) }); };
   $("next").onclick = function () { var p = ((st && st.state.page) || 1) + 1; send({ page: Math.min(9, p) }); };
   $("play").onclick = function () {
