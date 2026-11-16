@@ -28,7 +28,7 @@
   .sq { min-height:96px; border-radius:16px; border:3px solid #556; background:#223; color:#c9d; font-size:24px; font-weight:800; }
   .sq.on { background:var(--acc); border-color:#fff3a8; color:#1a1400; }
   .st { text-align:center; font-size:16px; font-weight:700; }
-  .st.listening { color:var(--go); } .st.hold { color:var(--acc); } .st.not_connected { color:var(--stop); }
+  .st.listening, .st.active { color:var(--go); } .st.hold, .st.idle { color:var(--acc); } .st.not_connected { color:var(--stop); }
   .meter { height:8px; background:#0d1518; border-radius:6px; overflow:hidden; }
   .meter i { display:block; height:100%; width:0; background:var(--go); transition:width .15s; }
   .foot { margin-top:14px; text-align:center; color:var(--muted); font-size:13px; }
@@ -58,12 +58,12 @@
       <div class="meter"><i id="dots-m"></i></div>
     </div>
   </div>
-  <div class="foot">Tap Muse or Dots to switch between Listening and On hold. Talk is a toggle: it stays on until you tap it again, and turns itself off if this page closes.</div>
+  <div class="foot">Tap Muse or Dots to switch between ACTIVE (may move and speak, hears) and IDLE (silent, still hears). Not connected means the bot isn't in the room or its window wasn't found. Talk is a toggle: it stays on until you tap it again, and turns itself off if this page closes.</div>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var ws = null, st = null, mic = null;
-  var LABEL = { listening: "Listening", hold: "On hold", not_connected: "Not connected" };
+  var LABEL = { active: "ACTIVE · talks + hears", idle: "IDLE · silent, still hears", listening: "ACTIVE", hold: "IDLE", not_connected: "Not connected" };
   var SRC = { phone: "Phone talk", zoom: "Zoom", website: "Website" };
   /* Control key: only Johnny's remote may move the show. The key arrives once as #k=... (opened on his
      phone from Sensai), is kept in this browser's localStorage and removed from the address bar. */
@@ -86,7 +86,8 @@
       var on = s.playing && s[w] === "live";
       $(w).classList.toggle("on", on);
       $(w).setAttribute("aria-pressed", on ? "true" : "false");
-      $(w + "-st").textContent = LABEL[b.status] || "—";
+      $(w).textContent = (w === "muse" ? "Muse" : "Dots") + (on ? " · ACTIVE" : " · IDLE");
+      $(w + "-st").textContent = (LABEL[b.status] || "—") + (b.status === "not_connected" && b.why ? " (" + b.why + ")" : "") + (b.has_floor ? " · speaking turn" : "");
       $(w + "-st").className = "st " + (b.status || "");
       $(w + "-m").style.width = Math.min(100, Math.round((b.voice_level || 0) * 600)) + "%";
     });
@@ -178,7 +179,7 @@
   $("next").onclick = function () { var p = ((st && st.state.page) || 1) + 1; send({ page: Math.min(9, p) }); };
   $("play").onclick = function () {
     if (st && st.state.playing) send({ playing: false, muse: "hold", dots: "hold", talk: false });
-    else send({ playing: true, muse: "live", dots: "live" });
+    else send({ playing: true });
   };
   ["muse", "dots"].forEach(function (w) {
     $(w).onclick = function () {
