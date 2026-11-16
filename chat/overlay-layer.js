@@ -138,6 +138,12 @@
         if (typeof global.page === "number" && idx === global.page) return;
         applying = true;
         try { global.show(idx); } finally { applying = false; }
+        return;
+      }
+      var want = "#page=" + n;
+      if (location.hash !== want) {
+        applying = true;
+        try { location.hash = "page=" + n; } finally { setTimeout(function () { applying = false; }, 0); }
       }
     }
     if (typeof global.show === "function" && !global.show.__botbarWrapped) {
@@ -161,6 +167,12 @@
       }
     });
     BotBarChatSync.start("show");
+    window.addEventListener("hashchange", function () {
+      if (applying) return;
+      var n = +new URLSearchParams((location.hash || "").slice(1)).get("page") || 1;
+      n = Math.max(1, Math.min(9, n | 0));
+      if (BotBarChatSync.get().page !== n) BotBarChatSync.publish({ page: n });
+    });
   }
 
   function ready(fn) {

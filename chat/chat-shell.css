@@ -1,0 +1,118 @@
+/* Show shell for Johnny's nine-scene HTML. Does not change scene logic.
+   Nav/UI is hidden. The 16:9 stage is contain-fitted in the viewport.
+   The 76px nav allowance is not reserved because #bb-nav is hidden;
+   the stage uses the full viewport so it can be as large as possible without cropping. */
+html,body{
+  margin:0 !important; padding:0 !important;
+  width:100% !important; height:100% !important;
+  min-width:0; min-height:0;
+  overflow:hidden !important;
+  background:#e9eff2;
+}
+body{display:block !important;}
+#botbar-presentation{
+  display:flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:fixed !important;
+  inset:0 !important;
+  width:100% !important; height:100% !important;
+  max-width:none !important;
+  margin:0 !important; padding:0 !important;
+  background:#e9eff2 !important;
+  overflow:hidden !important;
+  transform:none !important;
+}
+#bb-nav,#bb-note,#bb-label,#bb-view,#bb-review,
+#bb-mobile-title,#bb-sides{
+  display:none !important;
+  pointer-events:none !important;
+  height:0 !important; width:0 !important;
+  overflow:hidden !important;
+  margin:0 !important; padding:0 !important;
+  border:0 !important;
+  opacity:0 !important;
+}
+#bb-main-frame{
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  margin:0 !important; padding:0 !important;
+  overflow:hidden !important;
+  aspect-ratio:auto !important;
+  position:relative !important;
+  background:transparent !important;
+}
+/* Defeat the portrait "enlarged keyboard" crop layout. */
+#botbar-presentation:not(.bb-original):not(.bb-wide-scene) #bb-mobile-title,
+#botbar-presentation:not(.bb-original):not(.bb-wide-scene) #bb-sides{
+  display:none !important;
+}
+#botbar-presentation:not(.bb-original):not(.bb-wide-scene) #bb-main-frame{
+  position:relative !important;
+  aspect-ratio:auto !important;
+  height:100% !important;
+  width:100% !important;
+  overflow:hidden !important;
+  background:transparent !important;
+}
+#bb-stage,
+#botbar-presentation:not(.bb-original):not(.bb-wide-scene) #bb-stage,
+#botbar-presentation:fullscreen #bb-stage,
+#botbar-presentation.bb-wide-scene #bb-stage{
+  position:relative !important;
+  left:auto !important; top:auto !important; right:auto !important; bottom:auto !important;
+  width:min(100vw, calc(100vh * 16 / 9)) !important;
+  max-width:none !important;
+  height:min(100vh, calc(100vw * 9 / 16)) !important;
+  max-height:100vh !important;
+  aspect-ratio:16/9 !important;
+  margin:auto !important;
+  overflow:hidden !important;
+  background:#fff;
+}
+#bb-art,#bb-header{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important; height:100% !important;
+  max-width:none !important;
+  object-fit:fill !important;
+  object-position:center center !important;
+  display:block !important;
+  margin:0 !important; padding:0 !important;
+  border:0 !important;
+}
+/* Keep the in-scene hotspot tappable, but never show the white "Animate scene" button
+   that #botbar-presentation button{background:white} would otherwise paint. */
+#botbar-presentation button#bb-button,
+#bb-button{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  color:transparent !important;
+  font-size:0 !important;
+  line-height:0 !important;
+  text-indent:0 !important;
+  padding:0 !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  outline:none !important;
+  cursor:pointer;
+  z-index:5;
+}
+#botbar-presentation button#bb-button:hover,
+#botbar-presentation button#bb-button:focus,
+#botbar-presentation button#bb-button:focus-visible,
+#bb-button:hover,#bb-button:focus,#bb-button:focus-visible{
+  background:transparent !important;
+  box-shadow:none !important;
+  outline:none !important;
+  color:transparent !important;
+}
