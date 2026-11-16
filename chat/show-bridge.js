@@ -32,12 +32,12 @@
         try { vid.srcObject.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
       }
       vid.srcObject = stream || null;
-      var show = function () { setVisible(tile, vid, true); };
-      vid.onloadedmetadata = show;
-      vid.onplaying = show;
+      var showIt = function () { setVisible(tile, vid, true); };
+      vid.onloadedmetadata = showIt;
+      vid.onplaying = showIt;
       if (vid.play) vid.play().catch(function () {});
       watch(which, stream);
-      show();
+      showIt();
     },
     disconnect: function (which) {
       var vid = which === "muse" ? museVid : dotsVid;
@@ -61,6 +61,9 @@
         if (BotBarChatSync.get().page !== want) BotBarChatSync.publish({ page: want });
       };
     }
+    BotBarChatSync.onMedia(function (which, stream) {
+      if (which === "muse" || which === "dots") BotBarFeeds.connect(which, stream);
+    });
     BotBarChatSync.subscribe(function (s, src) {
       if (typeof show === "function" && s.page) {
         var n = Math.max(0, Math.min(8, (s.page | 0) - 1));
