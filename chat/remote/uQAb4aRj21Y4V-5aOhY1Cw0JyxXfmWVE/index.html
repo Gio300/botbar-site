@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>BotBar show remote</title>
+<style>
+  :root { --bg:#0b1114; --card:#162227; --line:#2a3d44; --text:#e8f4f6; --muted:#8aa3ab; --acc:#f5d000; --go:#1ec98a; --stop:#e24b4b; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:Arial,system-ui,sans-serif; }
+  body { padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
+  h1 { margin:0 0 4px; font-size:22px; letter-spacing:.04em; }
+  .sub { color:var(--muted); font-size:14px; margin-bottom:18px; }
+  .nav-row { display:flex; gap:12px; margin-bottom:16px; }
+  .nav-row button, .play, .recon { border:0; border-radius:18px; font-weight:800; color:#081114; cursor:pointer; }
+  .nav-row button { flex:1; min-height:88px; font-size:32px; background:#d7ecef; }
+  .center { display:flex; justify-content:center; margin:8px 0 22px; }
+  .play { width:min(100%, 320px); min-height:140px; font-size:42px; letter-spacing:.08em; background:var(--go); }
+  .play.stop { background:var(--stop); color:#fff; }
+  .toggles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .tile { background:var(--card); border:3px solid var(--line); border-radius:22px; min-height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:12px; }
+  .sq { width:100%; min-height:110px; border-radius:16px; border:3px solid #556; background:#223; color:#c9d; font-size:28px; font-weight:800; cursor:pointer; }
+  .sq.on { background:var(--acc); border-color:#fff3a8; color:#1a1400; }
+  .recon { width:100%; min-height:56px; font-size:16px; background:#d7ecef; }
+  .status { margin-top:18px; text-align:center; color:var(--muted); font-size:15px; }
+  button:active { transform:scale(.98); }
+  button:focus-visible { outline:3px solid var(--acc); }
+</style>
+</head>
+<body>
+  <h1>BotBar remote</h1>
+  <div class="sub">No login. Left and right skip scenes. Play calls both bots into the scene; Stop sends them out. Toggles set who can talk after Play.</div>
+  <div class="nav-row">
+    <button id="prev" type="button" aria-label="Previous scene">&#8592;</button>
+    <button id="next" type="button" aria-label="Next scene">&#8594;</button>
+  </div>
+  <div class="center">
+    <button id="play" class="play" type="button">PLAY</button>
+  </div>
+  <div class="toggles">
+    <div class="tile">
+      <button id="muse" class="sq" type="button">Muse</button>
+      <button id="muse-re" class="recon" type="button">Reconnect Muse</button>
+    </div>
+    <div class="tile">
+      <button id="dots" class="sq" type="button">Dots</button>
+      <button id="dots-re" class="recon" type="button">Reconnect Dots</button>
+    </div>
+  </div>
+  <div id="status" class="status">Scene 1 / 9</div>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="/chat/sync.js"></script>
+  <script>
+    const $ = function (id) { return document.getElementById(id); };
+    function render(s) {
+      $("play").textContent = s.playing ? "STOP" : "PLAY";
+      $("play").classList.toggle("stop", !!s.playing);
+      $("muse").classList.toggle("on", s.playing && s.muse === "live");
+      $("dots").classList.toggle("on", s.playing && s.dots === "live");
+      $("muse").setAttribute("aria-pressed", s.playing && s.muse === "live" ? "true" : "false");
+      $("dots").setAttribute("aria-pressed", s.playing && s.dots === "live" ? "true" : "false");
+      $("status").textContent = "Scene " + s.page + " / 9" + (s.playing ? " · live" : " · stopped");
+    }
+    BotBarChatSync.subscribe(render);
+    BotBarChatSync.start("remote");
+    $("prev").onclick = function () {
+      var p = Math.max(1, (BotBarChatSync.get().page || 1) - 1);
+      BotBarChatSync.publish({ page: p });
+    };
+    $("next").onclick = function () {
+      var p = Math.min(9, (BotBarChatSync.get().page || 1) + 1);
+      BotBarChatSync.publish({ page: p });
+    };
+    $("play").onclick = function () {
+      var s = BotBarChatSync.get();
+      if (s.playing) {
+        BotBarChatSync.publish({ playing: false, muse: "hold", dots: "hold" });
+      } else {
+        BotBarChatSync.publish({ playing: true, muse: "live", dots: "live" });
+      }
+    };
+    $("muse").onclick = function () {
+      var s = BotBarChatSync.get();
+      if (!s.playing) return;
+      BotBarChatSync.publish({ muse: s.muse === "live" ? "hold" : "live" });
+    };
+    $("dots").onclick = function () {
+      var s = BotBarChatSync.get();
+      if (!s.playing) return;
+      BotBarChatSync.publish({ dots: s.dots === "live" ? "hold" : "live" });
+    };
+    $("muse-re").onclick = function () {
+      var s = BotBarChatSync.get();
+      var rec = Object.assign({}, s.reconnect || {}, { muse: ((s.reconnect && s.reconnect.muse) || 0) + 1 });
+      BotBarChatSync.publish({ playing: true, muse: "live", reconnect: rec });
+    };
+    $("dots-re").onclick = function () {
+      var s = BotBarChatSync.get();
+      var rec = Object.assign({}, s.reconnect || {}, { dots: ((s.reconnect && s.reconnect.dots) || 0) + 1 });
+      BotBarChatSync.publish({ playing: true, dots: "live", reconnect: rec });
+    };
+  </script>
+</body>
+</html>
