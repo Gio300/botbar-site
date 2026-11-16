@@ -36,3 +36,40 @@
     if (e.key === "ArrowLeft") { e.preventDefault(); go(1); }
   });
 })();
+(function () {
+  function avgColor(img) {
+    try {
+      var c = document.createElement("canvas");
+      var w = Math.min(img.naturalWidth || 0, 64);
+      var h = Math.min(img.naturalHeight || 0, 36);
+      if (w < 2 || h < 2) return null;
+      c.width = w; c.height = h;
+      var g = c.getContext("2d");
+      g.drawImage(img, 0, 0, w, h);
+      var d = g.getImageData(0, 0, w, h).data;
+      function sample(x, y) {
+        var i = (y * w + x) * 4;
+        return [d[i], d[i+1], d[i+2]];
+      }
+      var pts = [sample(0, 0), sample(w-1, 0), sample(0, h-1), sample(w-1, h-1), sample((w/2)|0, 0), sample((w/2)|0, h-1)];
+      var r = 0, g2 = 0, b = 0;
+      pts.forEach(function (p) { r += p[0]; g2 += p[1]; b += p[2]; });
+      r = (r / pts.length) | 0; g2 = (g2 / pts.length) | 0; b = (b / pts.length) | 0;
+      return "rgb(" + r + "," + g2 + "," + b + ")";
+    } catch (e) { return null; }
+  }
+  function matchPageBackground() {
+    var img = document.getElementById("art");
+    var stage = document.getElementById("stage") || document.body;
+    if (!img) return;
+    var color = avgColor(img) || "#0b1114";
+    stage.style.background = color;
+    document.body.style.background = color;
+    img.style.background = color;
+  }
+  var img = document.getElementById("art");
+  if (img) {
+    img.addEventListener("load", matchPageBackground);
+    if (img.complete) matchPageBackground();
+  }
+})();
