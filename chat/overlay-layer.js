@@ -263,7 +263,7 @@
       else location.hash = "page=" + p;
     } finally { relay.applying = false; }
   }
-  function relaySendPage(p) {
+  function relaySendPage(p) { return; /* viewers are read-only: only Johnny's keyed remote moves the shared show */ 
     if (relay.applying || !relay.ws || relay.ws.readyState !== 1) return;
     lastRemotePage = p;
     try { relay.ws.send(JSON.stringify({ type: "page", page: p })); } catch (e) {}

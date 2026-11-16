@@ -62,7 +62,15 @@
   var ws = null, st = null, mic = null;
   var LABEL = { listening: "Listening", hold: "On hold", not_connected: "Not connected" };
   var SRC = { phone: "Phone talk", zoom: "Zoom", website: "Website" };
-  function send(patch) { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "control", patch: patch })); }
+  /* Control key: only Johnny's remote may move the show. The key arrives once as #k=... (opened on his
+     phone from Sensai), is kept in this browser's localStorage and removed from the address bar. */
+  var KEY_NAME = "botbarRemoteKey", key = null, authed = false;
+  try {
+    var hk = new URLSearchParams(location.hash.slice(1)).get("k");
+    if (hk) { localStorage.setItem(KEY_NAME, hk); history.replaceState(null, "", location.pathname + location.search); }
+    key = localStorage.getItem(KEY_NAME);
+  } catch (e) {}
+  function send(patch) { if (!authed) return; if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "control", patch: patch })); }
   function render() {
     if (!st) return;
     var s = st.state || {};
@@ -88,8 +96,11 @@
   function connect() {
     fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
       ws = new WebSocket(cfg.ws.replace(/\/feed$/, "/remote")); ws.binaryType = "arraybuffer";
-      ws.onopen = function () { $("conn").textContent = "connected"; $("conn").className = "ok"; };
-      ws.onmessage = function (ev) { if (typeof ev.data !== "string") return; try { var j = JSON.parse(ev.data); if (j.kind === "status") { st = j; render(); } } catch (e) {} };
+      ws.onopen = function () {
+        $("conn").textContent = key ? "checking key..." : "view only (no remote key on this device)"; $("conn").className = key ? "" : "bad";
+        if (key) ws.send(JSON.stringify({ type: "auth", k: key }));
+      };
+      ws.onmessage = function (ev) { if (typeof ev.data !== "string") return; try { var j = JSON.parse(ev.data); if (j.kind === "auth") { authed = !!j.ok; $("conn").textContent = authed ? "connected" : "view only (remote key rejected)"; $("conn").className = authed ? "ok" : "bad"; } if (j.kind === "status") { st = j; render(); } } catch (e) {} };
       ws.onclose = function () { $("conn").textContent = "offline — retrying"; $("conn").className = "bad"; ws = null; stopMic(); setTimeout(connect, 2500); };
     }).catch(function () { setTimeout(connect, 4000); });
   }
