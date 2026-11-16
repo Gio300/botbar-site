@@ -65,7 +65,8 @@
   }
   function setVisible(tile, vid, on) {
     if (!tile) return;
-    if (on && hasLive(vid && vid.srcObject)) {
+    if (on && relayLive(tile.id === "muse-tile" ? "muse" : "dots")) return;
+    if (on && hasLive(vid && vid.srcObject) && vid.videoWidth > 0) {
       tile.hidden = false;
       tile.classList.add("live");
     } else {
@@ -108,7 +109,6 @@
           vid.play().then(function () { vid.muted = false; }).catch(function () {});
         });
         watch(which, stream);
-        showIt();
       },
       disconnect: function (which) {
         var vid = which === "muse" ? document.getElementById("muse-video") : document.getElementById("dots-video");
@@ -188,6 +188,85 @@
     }
   }
 
+  /* ---- Relay feed: frames + voice over a plain WebSocket (works on any network,
+     no WebRTC/TURN needed). URL comes from feed.json next to this script. ---- */
+  var relay = { last: { muse: 0, dots: 0 }, ac: null, next: { muse: 0, dots: 0 }, ws: null };
+  function relayLive(which) { return Date.now() - relay.last[which] < 5000; }
+  function audioCtx() {
+    if (!relay.ac) {
+      try { relay.ac = new (global.AudioContext || global.webkitAudioContext)(); } catch (e) { relay.ac = null; }
+    }
+    return relay.ac;
+  }
+  function unlockAudio() {
+    var ac = audioCtx();
+    if (ac && ac.state !== "running") { try { ac.resume(); } catch (e) {} }
+  }
+  ["pointerup", "touchend", "click", "keydown"].forEach(function (ev) {
+    global.addEventListener(ev, unlockAudio, { passive: true, capture: true });
+  });
+  function relayCanvas(which) {
+    var tile = document.getElementById(which + "-tile");
+    if (!tile) return null;
+    var c = tile.querySelector("canvas.bot-canvas");
+    if (!c) {
+      c = document.createElement("canvas");
+      c.className = "bot-canvas"; c.width = 256; c.height = 256;
+      tile.insertBefore(c, tile.firstChild);
+    }
+    return c;
+  }
+  function relayFrame(which, buf) {
+    var c = relayCanvas(which); if (!c) return;
+    var blob = new Blob([buf], { type: "image/jpeg" });
+    var draw = function (img) {
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      relay.last[which] = Date.now();
+      var tile = document.getElementById(which + "-tile");
+      tile.classList.add("relay"); tile.hidden = false; tile.classList.add("live");
+    };
+    if (global.createImageBitmap) createImageBitmap(blob).then(draw).catch(function () {});
+    else { var im = new Image(); im.onload = function () { draw(im); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(blob); }
+  }
+  function relayAudio(which, h, buf) {
+    var ac = audioCtx(); if (!ac || ac.state !== "running") return;
+    var pcm = new Int16Array(buf); if (!pcm.length) return;
+    var sr = h.sr || 24000, b = ac.createBuffer(1, pcm.length, sr), d = b.getChannelData(0);
+    for (var i = 0; i < pcm.length; i++) d[i] = pcm[i] / 32768;
+    var src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination);
+    var t = Math.max(ac.currentTime + 0.08, relay.next[which]);
+    if (t - ac.currentTime > 0.6) t = ac.currentTime + 0.08; /* drop backlog, stay live */
+    src.start(t); relay.next[which] = t + b.duration;
+  }
+  setInterval(function () {
+    ["muse", "dots"].forEach(function (w) {
+      var tile = document.getElementById(w + "-tile");
+      if (tile && tile.classList.contains("relay") && !relayLive(w)) {
+        tile.classList.remove("relay");
+        var v = document.getElementById(w + "-video");
+        if (!(v && hasLive(v.srcObject) && v.videoWidth > 0)) { tile.hidden = true; tile.classList.remove("live"); }
+      }
+    });
+  }, 1000);
+  function startRelay() {
+    var url = new URL("feed.json", scriptUrl()).href + "?t=" + Date.now();
+    fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
+      if (!cfg || !cfg.ws) { setTimeout(startRelay, 15000); return; }
+      var ws = new WebSocket(cfg.ws); ws.binaryType = "arraybuffer"; relay.ws = ws;
+      var hdr = null;
+      ws.onmessage = function (ev) {
+        if (typeof ev.data === "string") { try { hdr = JSON.parse(ev.data); } catch (e) { hdr = null; } return; }
+        if (!hdr) return;
+        if (hdr.kind === "frame") relayFrame(hdr.which, ev.data);
+        else if (hdr.kind === "audio") relayAudio(hdr.which, hdr, ev.data);
+        hdr = null;
+      };
+      ws.onclose = function () { relay.ws = null; setTimeout(startRelay, 3000); };
+      ws.onerror = function () { try { ws.close(); } catch (e) {} };
+    }).catch(function () { setTimeout(startRelay, 15000); });
+  }
+  global.BotBarRelay = { status: function () { return { ws: relay.ws ? relay.ws.readyState : -1, last: relay.last, audio: relay.ac ? relay.ac.state : "none" }; } };
+
   function ready(fn) {
     if (document.body) fn();
     else document.addEventListener("DOMContentLoaded", fn);
@@ -197,6 +276,7 @@
     loadCss();
     ensureTiles();
     installFeeds();
+    startRelay();
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
   });
 })(window);
