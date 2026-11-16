@@ -248,6 +248,38 @@
       }
     });
   }, 1000);
+  /* Scene sync from Sensai (remote presses arrive here over the relay, any network). */
+  var lastRemotePage = null;
+  function relayStatus(st) {
+    relay.status = st;
+    var p = st && st.state && st.state.page;
+    if (!p || p === lastRemotePage) return;
+    lastRemotePage = p;
+    var cur = (typeof global.page === "number") ? global.page + 1 : null;
+    if (cur === p) return;
+    relay.applying = true;
+    try {
+      if (typeof global.show === "function") global.show(p - 1);
+      else location.hash = "page=" + p;
+    } finally { relay.applying = false; }
+  }
+  function relaySendPage(p) {
+    if (relay.applying || !relay.ws || relay.ws.readyState !== 1) return;
+    lastRemotePage = p;
+    try { relay.ws.send(JSON.stringify({ type: "page", page: p })); } catch (e) {}
+  }
+  global.addEventListener("hashchange", function () {
+    var n = +new URLSearchParams((location.hash || "").slice(1)).get("page") || 1;
+    relaySendPage(n);
+  });
+  (function hookReplace() {
+    var orig = history.replaceState;
+    history.replaceState = function (a, b, url) {
+      var r = orig.apply(this, arguments);
+      try { var m = /page=(\d+)/.exec(String(url || "")); if (m) relaySendPage(+m[1]); } catch (e) {}
+      return r;
+    };
+  })();
   function startRelay() {
     var url = new URL("feed.json", scriptUrl()).href + "?t=" + Date.now();
     fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
@@ -255,7 +287,11 @@
       var ws = new WebSocket(cfg.ws); ws.binaryType = "arraybuffer"; relay.ws = ws;
       var hdr = null;
       ws.onmessage = function (ev) {
-        if (typeof ev.data === "string") { try { hdr = JSON.parse(ev.data); } catch (e) { hdr = null; } return; }
+        if (typeof ev.data === "string") {
+          try { hdr = JSON.parse(ev.data); } catch (e) { hdr = null; }
+          if (hdr && hdr.kind === "status") { relayStatus(hdr); hdr = null; }
+          return;
+        }
         if (!hdr) return;
         if (hdr.kind === "frame") relayFrame(hdr.which, ev.data);
         else if (hdr.kind === "audio") relayAudio(hdr.which, hdr, ev.data);
@@ -265,7 +301,7 @@
       ws.onerror = function () { try { ws.close(); } catch (e) {} };
     }).catch(function () { setTimeout(startRelay, 15000); });
   }
-  global.BotBarRelay = { status: function () { return { ws: relay.ws ? relay.ws.readyState : -1, last: relay.last, audio: relay.ac ? relay.ac.state : "none" }; } };
+  global.BotBarRelay = { remote: function () { return relay.status; }, status: function () { return { page: lastRemotePage, ws: relay.ws ? relay.ws.readyState : -1, last: relay.last, audio: relay.ac ? relay.ac.state : "none" }; } };
 
   function ready(fn) {
     if (document.body) fn();

@@ -6,100 +6,138 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>BotBar show remote</title>
 <style>
-  :root { --bg:#0b1114; --card:#162227; --line:#2a3d44; --text:#e8f4f6; --muted:#8aa3ab; --acc:#f5d000; --go:#1ec98a; --stop:#e24b4b; }
+  :root { --bg:#0b1114; --card:#162227; --line:#2a3d44; --text:#e8f4f6; --muted:#8aa3ab; --acc:#f5d000; --go:#1ec98a; --stop:#e24b4b; --talk:#ff6a3d; }
   * { box-sizing:border-box; }
   html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:Arial,system-ui,sans-serif; }
-  body { padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
-  h1 { margin:0 0 4px; font-size:22px; letter-spacing:.04em; }
-  .sub { color:var(--muted); font-size:14px; margin-bottom:18px; }
-  .nav-row { display:flex; gap:12px; margin-bottom:16px; }
-  .nav-row button, .play, .recon { border:0; border-radius:18px; font-weight:800; color:#081114; cursor:pointer; }
-  .nav-row button { flex:1; min-height:88px; font-size:32px; background:#d7ecef; }
-  .center { display:flex; justify-content:center; margin:8px 0 22px; }
-  .play { width:min(100%, 320px); min-height:140px; font-size:42px; letter-spacing:.08em; background:var(--go); }
+  body { padding: calc(14px + env(safe-area-inset-top)) 14px calc(22px + env(safe-area-inset-bottom)); }
+  h1 { margin:0 0 4px; font-size:21px; letter-spacing:.04em; }
+  .conn { font-size:13px; color:var(--muted); margin-bottom:12px; }
+  .conn b.ok { color:var(--go); } .conn b.bad { color:var(--stop); }
+  .nav-row { display:flex; gap:12px; margin-bottom:12px; }
+  .nav-row button { flex:1; min-height:76px; font-size:30px; background:#d7ecef; border:0; border-radius:18px; font-weight:800; color:#081114; }
+  .play { width:100%; min-height:96px; font-size:36px; letter-spacing:.08em; background:var(--go); border:0; border-radius:18px; font-weight:800; color:#081114; margin-bottom:12px; }
   .play.stop { background:var(--stop); color:#fff; }
-  .toggles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .tile { background:var(--card); border:3px solid var(--line); border-radius:22px; min-height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:12px; }
-  .sq { width:100%; min-height:110px; border-radius:16px; border:3px solid #556; background:#223; color:#c9d; font-size:28px; font-weight:800; cursor:pointer; }
+  .source { background:var(--card); border:2px solid var(--line); border-radius:16px; padding:10px 12px; margin-bottom:12px; font-size:15px; }
+  .source .now { font-size:22px; font-weight:800; color:var(--acc); }
+  .talk { width:100%; min-height:110px; border-radius:20px; border:4px solid #553; background:#2a2016; color:#ffd9c9; font-size:28px; font-weight:900; margin-bottom:12px; }
+  .talk.on { background:var(--talk); border-color:#fff; color:#160600; box-shadow:0 0 22px #ff6a3d99; }
+  .toggles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tile { background:var(--card); border:3px solid var(--line); border-radius:20px; padding:10px; display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+  .sq { min-height:96px; border-radius:16px; border:3px solid #556; background:#223; color:#c9d; font-size:24px; font-weight:800; }
   .sq.on { background:var(--acc); border-color:#fff3a8; color:#1a1400; }
-  .recon { width:100%; min-height:56px; font-size:16px; background:#d7ecef; }
-  .status { margin-top:18px; text-align:center; color:var(--muted); font-size:15px; }
+  .st { text-align:center; font-size:16px; font-weight:700; }
+  .st.listening { color:var(--go); } .st.hold { color:var(--acc); } .st.not_connected { color:var(--stop); }
+  .meter { height:8px; background:#0d1518; border-radius:6px; overflow:hidden; }
+  .meter i { display:block; height:100%; width:0; background:var(--go); transition:width .15s; }
+  .foot { margin-top:14px; text-align:center; color:var(--muted); font-size:13px; }
   button:active { transform:scale(.98); }
-  button:focus-visible { outline:3px solid var(--acc); }
 </style>
 </head>
 <body>
   <h1>BotBar remote</h1>
-  <div class="sub">No login. Left and right skip scenes. Play calls both bots into the scene; Stop sends them out. Toggles set who can talk after Play.</div>
+  <div class="conn">Sensai: <b id="conn" class="bad">connecting…</b> · <span id="scene">Scene 1 / 9</span></div>
   <div class="nav-row">
     <button id="prev" type="button" aria-label="Previous scene">&#8592;</button>
     <button id="next" type="button" aria-label="Next scene">&#8594;</button>
   </div>
-  <div class="center">
-    <button id="play" class="play" type="button">PLAY</button>
-  </div>
+  <button id="play" class="play" type="button">PLAY</button>
+  <div class="source">Bots are hearing: <span id="src" class="now">—</span><br><small id="srcnote">Priority: Phone talk (while ON) → Zoom → Website</small></div>
+  <button id="talk" class="talk" type="button" aria-pressed="false">TALK: OFF<br><small>tap to talk to the bots</small></button>
   <div class="toggles">
     <div class="tile">
       <button id="muse" class="sq" type="button">Muse</button>
-      <button id="muse-re" class="recon" type="button">Reconnect Muse</button>
+      <div id="muse-st" class="st not_connected">Not connected</div>
+      <div class="meter"><i id="muse-m"></i></div>
     </div>
     <div class="tile">
       <button id="dots" class="sq" type="button">Dots</button>
-      <button id="dots-re" class="recon" type="button">Reconnect Dots</button>
+      <div id="dots-st" class="st not_connected">Not connected</div>
+      <div class="meter"><i id="dots-m"></i></div>
     </div>
   </div>
-  <div id="status" class="status">Scene 1 / 9</div>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="/chat/sync.js"></script>
-  <script>
-    const $ = function (id) { return document.getElementById(id); };
-    function render(s) {
-      $("play").textContent = s.playing ? "STOP" : "PLAY";
-      $("play").classList.toggle("stop", !!s.playing);
-      $("muse").classList.toggle("on", s.playing && s.muse === "live");
-      $("dots").classList.toggle("on", s.playing && s.dots === "live");
-      $("muse").setAttribute("aria-pressed", s.playing && s.muse === "live" ? "true" : "false");
-      $("dots").setAttribute("aria-pressed", s.playing && s.dots === "live" ? "true" : "false");
-      $("status").textContent = "Scene " + s.page + " / 9" + (s.playing ? " · live" : " · stopped");
-    }
-    BotBarChatSync.subscribe(render);
-    BotBarChatSync.start("remote");
-    $("prev").onclick = function () {
-      var p = Math.max(1, (BotBarChatSync.get().page || 1) - 1);
-      BotBarChatSync.publish({ page: p });
+  <div class="foot">Tap Muse or Dots to switch between Listening and On hold. Talk is a toggle: it stays on until you tap it again, and turns itself off if this page closes.</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var ws = null, st = null, mic = null;
+  var LABEL = { listening: "Listening", hold: "On hold", not_connected: "Not connected" };
+  var SRC = { phone: "Phone talk", zoom: "Zoom", website: "Website" };
+  function send(patch) { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "control", patch: patch })); }
+  function render() {
+    if (!st) return;
+    var s = st.state || {};
+    $("play").textContent = s.playing ? "STOP" : "PLAY";
+    $("play").classList.toggle("stop", !!s.playing);
+    $("scene").textContent = "Scene " + (s.page || 1) + " / 9";
+    $("src").textContent = SRC[st.source] || st.source;
+    ["muse", "dots"].forEach(function (w) {
+      var b = (st.bots || {})[w] || {};
+      var on = s.playing && s[w] === "live";
+      $(w).classList.toggle("on", on);
+      $(w).setAttribute("aria-pressed", on ? "true" : "false");
+      $(w + "-st").textContent = LABEL[b.status] || "—";
+      $(w + "-st").className = "st " + (b.status || "");
+      $(w + "-m").style.width = Math.min(100, Math.round((b.voice_level || 0) * 600)) + "%";
+    });
+    var talk = !!s.talk;
+    $("talk").classList.toggle("on", talk);
+    $("talk").setAttribute("aria-pressed", talk ? "true" : "false");
+    $("talk").innerHTML = talk ? "TALK: ON<br><small>bots hear your phone · tap to stop</small>" : "TALK: OFF<br><small>tap to talk to the bots</small>";
+    if (!talk && mic) stopMic();
+  }
+  function connect() {
+    fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
+      ws = new WebSocket(cfg.ws.replace(/\/feed$/, "/remote")); ws.binaryType = "arraybuffer";
+      ws.onopen = function () { $("conn").textContent = "connected"; $("conn").className = "ok"; };
+      ws.onmessage = function (ev) { if (typeof ev.data !== "string") return; try { var j = JSON.parse(ev.data); if (j.kind === "status") { st = j; render(); } } catch (e) {} };
+      ws.onclose = function () { $("conn").textContent = "offline — retrying"; $("conn").className = "bad"; ws = null; stopMic(); setTimeout(connect, 2500); };
+    }).catch(function () { setTimeout(connect, 4000); });
+  }
+  function startMic() {
+    if (mic) return Promise.resolve();
+    return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
+      var ac = new (window.AudioContext || window.webkitAudioContext)();
+      var src = ac.createMediaStreamSource(stream);
+      var proc = ac.createScriptProcessor(2048, 1, 1);
+      var ratio = ac.sampleRate / 24000;
+      proc.onaudioprocess = function (e) {
+        if (!ws || ws.readyState !== 1) return;
+        var x = e.inputBuffer.getChannelData(0), n = Math.floor(x.length / ratio), out = new Int16Array(n);
+        for (var i = 0; i < n; i++) { var v = x[Math.floor(i * ratio)]; out[i] = Math.max(-1, Math.min(1, v)) * 32767; }
+        ws.send(out.buffer);
+      };
+      var mute = ac.createGain(); mute.gain.value = 0;
+      src.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played back */
+      mic = { stream: stream, ac: ac, proc: proc };
+    });
+  }
+  function stopMic() {
+    if (!mic) return;
+    try { mic.proc.disconnect(); mic.stream.getTracks().forEach(function (t) { t.stop(); }); mic.ac.close(); } catch (e) {}
+    mic = null;
+  }
+  $("talk").onclick = function () {
+    var on = !(st && st.state && st.state.talk);
+    if (on) startMic().then(function () { send({ talk: true }); }).catch(function () { alert("Microphone permission is needed for Talk."); });
+    else { send({ talk: false }); stopMic(); }
+  };
+  $("prev").onclick = function () { var p = ((st && st.state.page) || 1) - 1; send({ page: Math.max(1, p) }); };
+  $("next").onclick = function () { var p = ((st && st.state.page) || 1) + 1; send({ page: Math.min(9, p) }); };
+  $("play").onclick = function () {
+    if (st && st.state.playing) send({ playing: false, muse: "hold", dots: "hold", talk: false });
+    else send({ playing: true, muse: "live", dots: "live" });
+  };
+  ["muse", "dots"].forEach(function (w) {
+    $(w).onclick = function () {
+      var s = (st && st.state) || {}, p = {};
+      p[w] = s[w] === "live" && s.playing ? "hold" : "live";
+      if (p[w] === "live") p.playing = true;
+      send(p);
     };
-    $("next").onclick = function () {
-      var p = Math.min(9, (BotBarChatSync.get().page || 1) + 1);
-      BotBarChatSync.publish({ page: p });
-    };
-    $("play").onclick = function () {
-      var s = BotBarChatSync.get();
-      if (s.playing) {
-        BotBarChatSync.publish({ playing: false, muse: "hold", dots: "hold" });
-      } else {
-        BotBarChatSync.publish({ playing: true, muse: "live", dots: "live" });
-      }
-    };
-    $("muse").onclick = function () {
-      var s = BotBarChatSync.get();
-      if (!s.playing) return;
-      BotBarChatSync.publish({ muse: s.muse === "live" ? "hold" : "live" });
-    };
-    $("dots").onclick = function () {
-      var s = BotBarChatSync.get();
-      if (!s.playing) return;
-      BotBarChatSync.publish({ dots: s.dots === "live" ? "hold" : "live" });
-    };
-    $("muse-re").onclick = function () {
-      var s = BotBarChatSync.get();
-      var rec = Object.assign({}, s.reconnect || {}, { muse: ((s.reconnect && s.reconnect.muse) || 0) + 1 });
-      BotBarChatSync.publish({ playing: true, muse: "live", reconnect: rec });
-    };
-    $("dots-re").onclick = function () {
-      var s = BotBarChatSync.get();
-      var rec = Object.assign({}, s.reconnect || {}, { dots: ((s.reconnect && s.reconnect.dots) || 0) + 1 });
-      BotBarChatSync.publish({ playing: true, dots: "live", reconnect: rec });
-    };
-  </script>
+  });
+  window.addEventListener("pagehide", function () { if (st && st.state.talk) send({ talk: false }); });
+  connect();
+})();
+</script>
 </body>
 </html>
