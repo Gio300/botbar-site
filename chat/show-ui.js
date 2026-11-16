@@ -1,17 +1,12 @@
 (function () {
   function currentPage() {
-    var n = +new URLSearchParams((location.hash || "").slice(1)).get("page") || 1;
-    if (typeof window.page === "number") n = window.page + 1;
+    var n = +new URLSearchParams((location.hash || '').slice(1)).get('page') || 1;
     return Math.max(1, Math.min(9, n | 0));
   }
   function goPage(n) {
     n = Math.max(1, Math.min(9, n | 0));
-    if (typeof window.show === "function") {
-      window.show(n - 1);
-    } else {
-      var want = "#page=" + n;
-      if (location.hash !== want) location.hash = "page=" + n;
-    }
+    var want = '#page=' + n;
+    if (location.hash !== want) location.hash = 'page=' + n;
     if (window.BotBarChatSync && BotBarChatSync.get().page !== n) {
       BotBarChatSync.publish({ page: n });
     }
@@ -29,26 +24,31 @@
     if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
     go(dx);
   }
-  var stage = document.getElementById("bb-stage") || document.getElementById("stage") || document.body;
-  stage.addEventListener("pointerdown", function (e) {
+  function onDown(e) {
     if (e.isPrimary === false) return;
     down(e.clientX, e.clientY);
-  }, { passive: true });
-  stage.addEventListener("pointerup", function (e) {
+    try { if (e.currentTarget && e.currentTarget.setPointerCapture && e.pointerId != null) e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+  function onUp(e) {
     if (e.isPrimary === false) return;
     up(e.clientX, e.clientY);
+  }
+  document.addEventListener('dragstart', function (e) { e.preventDefault(); }, true);
+  ['bb-art','bb-header','bb-button','bb-stage'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.setAttribute('draggable', 'false');
   });
-  stage.addEventListener("touchstart", function (e) {
-    if (!e.changedTouches || !e.changedTouches[0]) return;
-    down(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-  }, { passive: true });
-  stage.addEventListener("touchend", function (e) {
-    if (!e.changedTouches || !e.changedTouches[0]) return;
-    up(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-  }, { passive: true });
-  document.addEventListener("keydown", function (e) {
-    if (e.target && e.target.matches && e.target.matches("input,textarea,select")) return;
-    if (e.key === "ArrowRight") { e.preventDefault(); go(-1); }
-    if (e.key === "ArrowLeft") { e.preventDefault(); go(1); }
+  var root = document.getElementById('botbar-presentation') || document;
+  root.addEventListener('pointerdown', onDown, { passive: true });
+  root.addEventListener('pointerup', onUp);
+  root.addEventListener('pointercancel', onUp);
+  document.addEventListener('pointerup', onUp);
+  document.addEventListener('pointercancel', onUp);
+  /* Arrows are already handled by the scene IIFE, except when focus is on a
+     button (the invisible hotspot). Only fill that gap so we do not skip pages. */
+  document.addEventListener('keydown', function (e) {
+    if (!e.target || !e.target.matches || !e.target.matches('select,input,button')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(-1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(1); }
   });
 })();

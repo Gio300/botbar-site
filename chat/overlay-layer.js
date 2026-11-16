@@ -167,12 +167,24 @@
       }
     });
     BotBarChatSync.start("show");
-    window.addEventListener("hashchange", function () {
+    function publishHashPage() {
       if (applying) return;
       var n = +new URLSearchParams((location.hash || "").slice(1)).get("page") || 1;
       n = Math.max(1, Math.min(9, n | 0));
       if (BotBarChatSync.get().page !== n) BotBarChatSync.publish({ page: n });
-    });
+    }
+    window.addEventListener("hashchange", publishHashPage);
+    /* The scene IIFE updates #page=N with history.replaceState, which does not
+       fire hashchange. Hook it so the remote stays in sync on arrow keys. */
+    if (!history.replaceState.__botbarWrapped) {
+      var _replace = history.replaceState;
+      history.replaceState = function () {
+        var ret = _replace.apply(this, arguments);
+        try { publishHashPage(); } catch (e) {}
+        return ret;
+      };
+      history.replaceState.__botbarWrapped = true;
+    }
   }
 
   function ready(fn) {

@@ -116,3 +116,9 @@ body{display:block !important;}
   outline:none !important;
   color:transparent !important;
 }
+
+#bb-art,#bb-header,#bb-stage,#bb-button{
+  -webkit-user-drag:none !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+}
