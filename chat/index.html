@@ -17,10 +17,22 @@ body{position:fixed;inset:0}
     placeTiles();
   }
   /* Muse and Dots sit side by side inside the open pane under the TensorVerse header. */
+  /* Tiles are pinned to scene 1's open pane geometry (fixed on screen), so they stay put on every
+     page change, swipe or scroll. The geometry is re-measured only when the viewport size changes. */
+  var tileGeo=null, tileKey='';
+  function scene1Rect(){
+    var p0=pages[0]; if(!p0) return null;
+    var pane=p0.querySelector('.bb-chat-ai'); if(!pane) return null;
+    var cur=pages[window.page], swap=cur&&cur!==p0;
+    if(swap){cur.classList.remove('bb-current');p0.classList.add('bb-current');}
+    var r=pane.getBoundingClientRect(), b={left:r.left,top:r.top,width:r.width,height:r.height};
+    if(swap){p0.classList.remove('bb-current');cur.classList.add('bb-current');}
+    return b.width>0&&b.height>0?b:null;
+  }
   function placeTiles(){
-    var cur=pages[window.page]; if(!cur) return;
-    var pane=cur.querySelector('.bb-chat-ai'); if(!pane) return;
-    var r=pane.getBoundingClientRect();
+    var vv=window.visualViewport, key=window.innerWidth+'x'+window.innerHeight+'|'+(vv?Math.round(vv.width)+'x'+Math.round(vv.height):'')+'|'+getComputedStyle(document.documentElement).getPropertyValue('--bb-w');
+    if(!tileGeo||key!==tileKey){var g=scene1Rect(); if(!g) return; tileGeo=g; tileKey=key;}
+    var r=tileGeo;
     var gap=r.width*0.06;
     var side=Math.floor(Math.min(r.height*0.86, (r.width-gap*3)/2));
     var top=r.top+(r.height-side)/2;
