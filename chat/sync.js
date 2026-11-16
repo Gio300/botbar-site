@@ -62,13 +62,22 @@
     hostId = "bbshow" + CHANNEL.replace(/[^a-zA-Z0-9]/g, "").slice(-22);
     var id = role === "show" ? hostId : hostId + "r" + Math.random().toString(36).slice(2, 8);
     try {
+      if (peerInstance) { try { peerInstance.destroy(); } catch (e) {} }
       peerInstance = new Peer(id, { debug: 0 });
+      peerInstance.on("disconnected", function () {
+        setTimeout(function () { try { if (peerInstance && peerInstance.disconnected && !peerInstance.destroyed) peerInstance.reconnect(); } catch (e) {} }, 2000);
+      });
       peerInstance.on("connection", hookConn);
       peerInstance.on("call", attachMedia);
       peerInstance.on("open", function () {
         if (role !== "show") hookConn(peerInstance.connect(hostId, { reliable: true }));
       });
-      peerInstance.on("error", function () {
+      peerInstance.on("error", function (err) {
+        var ty = err && err.type;
+        if (ty === "unavailable-id" || ty === "network" || ty === "server-error" || ty === "socket-error" || ty === "socket-closed") {
+          setTimeout(function () { startPeer(role); }, role === "show" ? 6000 : 3000);
+          return;
+        }
         if (role !== "show") {
           setTimeout(function () { try { hookConn(peerInstance.connect(hostId, { reliable: true })); } catch (e) {} }, 2500);
         }
@@ -81,6 +90,12 @@
       if (mediaCalls[which]) { try { mediaCalls[which].close(); } catch (e) {} }
       mediaCalls[which] = peerInstance.call(hostId, stream, { metadata: { which: which } });
     } catch (e) {}
+  }
+  function callOpen(which) {
+    var c = mediaCalls[which];
+    if (!c || !c.open) return false;
+    var pc = c.peerConnection;
+    return !pc || (pc.connectionState !== "failed" && pc.connectionState !== "closed" && pc.connectionState !== "disconnected");
   }
   function hangupMedia(which) {
     var keys = which ? [which] : Object.keys(mediaCalls);
@@ -107,6 +122,7 @@
     publish: publish,
     start: startPeer,
     callWithStream: callWithStream,
+    callOpen: callOpen,
     hangupMedia: hangupMedia
   };
 })(window);

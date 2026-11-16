@@ -77,7 +77,8 @@
     if (!stream || !stream.getTracks) return;
     stream.getTracks().forEach(function (t) {
       t.addEventListener("ended", function () {
-        if (!hasLive(stream) && global.BotBarFeeds) global.BotBarFeeds.disconnect(which);
+        var v = document.getElementById(which === "muse" ? "muse-video" : "dots-video");
+        if (v && v.srcObject === stream && !hasLive(stream) && global.BotBarFeeds) global.BotBarFeeds.disconnect(which);
       });
     });
   }
