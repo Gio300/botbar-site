@@ -9,6 +9,11 @@
   }
   var state = load();
   var listeners = [];
+  var mediaHandlers = [];
+  var roleName = null;
+  var peerInstance = null;
+  var hostId = null;
+  var mediaCalls = {};
   var bc = null;
   try {
     bc = new BroadcastChannel(CHANNEL);
@@ -22,9 +27,11 @@
 
   function applyIncoming(s, src) {
     if (!s || s.v !== 1) return;
-    if ((s.ts || 0) < (state.ts || 0)) return;
+    if (src !== "local" && (s.ts || 0) <= (state.ts || 0)) return;
+    if (src === "local" && (s.ts || 0) < (state.ts || 0)) return;
     state = Object.assign({}, defaultState, s);
     notify(src);
+    if (roleName === "show" && src === "peer") sendPeers(s);
   }
   function notify(src) {
     listeners.slice().forEach(function (fn) { try { fn(Object.assign({}, state), src); } catch (e) {} });
@@ -41,22 +48,46 @@
     function hello() { try { c.send(state); } catch (e) {} }
     if (c.open) hello(); else c.on("open", hello);
   }
+  function attachMedia(call) {
+    var meta = call.metadata || {};
+    var which = meta.which || meta || "muse";
+    call.answer();
+    call.on("stream", function (stream) {
+      mediaHandlers.slice().forEach(function (fn) { try { fn(which, stream); } catch (e) {} });
+    });
+  }
   function startPeer(role) {
+    roleName = role;
     if (!global.Peer) return;
-    var hostId = "bbshow" + CHANNEL.replace(/[^a-zA-Z0-9]/g, "").slice(-22);
+    hostId = "bbshow" + CHANNEL.replace(/[^a-zA-Z0-9]/g, "").slice(-22);
     var id = role === "show" ? hostId : hostId + "r" + Math.random().toString(36).slice(2, 8);
     try {
-      var peer = new Peer(id, { debug: 0 });
-      peer.on("connection", hookConn);
-      peer.on("open", function () {
-        if (role !== "show") hookConn(peer.connect(hostId, { reliable: true }));
+      peerInstance = new Peer(id, { debug: 0 });
+      peerInstance.on("connection", hookConn);
+      peerInstance.on("call", attachMedia);
+      peerInstance.on("open", function () {
+        if (role !== "show") hookConn(peerInstance.connect(hostId, { reliable: true }));
       });
-      peer.on("error", function () {
+      peerInstance.on("error", function () {
         if (role !== "show") {
-          setTimeout(function () { try { hookConn(peer.connect(hostId, { reliable: true })); } catch (e) {} }, 2500);
+          setTimeout(function () { try { hookConn(peerInstance.connect(hostId, { reliable: true })); } catch (e) {} }, 2500);
         }
       });
     } catch (e) {}
+  }
+  function callWithStream(which, stream) {
+    if (!peerInstance || !hostId || !stream) return;
+    try {
+      if (mediaCalls[which]) { try { mediaCalls[which].close(); } catch (e) {} }
+      mediaCalls[which] = peerInstance.call(hostId, stream, { metadata: { which: which } });
+    } catch (e) {}
+  }
+  function hangupMedia(which) {
+    var keys = which ? [which] : Object.keys(mediaCalls);
+    keys.forEach(function (k) {
+      try { if (mediaCalls[k]) mediaCalls[k].close(); } catch (e) {}
+      delete mediaCalls[k];
+    });
   }
 
   function publish(patch) {
@@ -69,9 +100,13 @@
 
   global.BotBarChatSync = {
     channel: CHANNEL,
+    hostId: function () { return hostId; },
     get: function () { return Object.assign({}, state); },
     subscribe: function (fn) { listeners.push(fn); fn(Object.assign({}, state), "init"); },
+    onMedia: function (fn) { mediaHandlers.push(fn); },
     publish: publish,
-    start: startPeer
+    start: startPeer,
+    callWithStream: callWithStream,
+    hangupMedia: hangupMedia
   };
 })(window);
