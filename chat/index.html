@@ -16,10 +16,9 @@ body{position:fixed;inset:0}
     document.documentElement.style.setProperty('--bb-w', w+'px');
     placeTiles();
   }
-  /* Muse and Dots sit side by side inside the open pane under the TensorVerse header. */
-  /* Tiles are pinned to scene 1's open pane geometry (fixed on screen), so they stay put on every
-     page change, swipe or scroll. The geometry is re-measured only when the viewport size changes. */
-  var tileGeo=null, tileKey='';
+  /* Muse and Dots sit side by side inside scene 1's reserved .bb-chat-ai pane under TensorVerse. */
+  /* Remeasured every placement (no stale first-layout cache). visualViewport offset is subtracted
+     so iPhone URL-bar chrome cannot slide the tiles onto the title or keyboard. Clamped inside the pane. */
   function scene1Rect(){
     var p0=pages[0]; if(!p0) return null;
     var pane=p0.querySelector('.bb-chat-ai'); if(!pane) return null;
@@ -30,13 +29,15 @@ body{position:fixed;inset:0}
     return b.width>0&&b.height>0?b:null;
   }
   function placeTiles(){
-    var vv=window.visualViewport, key=window.innerWidth+'x'+window.innerHeight+'|'+(vv?Math.round(vv.width)+'x'+Math.round(vv.height):'')+'|'+getComputedStyle(document.documentElement).getPropertyValue('--bb-w');
-    if(!tileGeo||key!==tileKey){var g=scene1Rect(); if(!g) return; tileGeo=g; tileKey=key;}
-    var r=tileGeo;
+    var g=scene1Rect(); if(!g) return;
+    var vv=window.visualViewport;
+    var r={left:g.left-(vv?vv.offsetLeft:0), top:g.top-(vv?vv.offsetTop:0), width:g.width, height:g.height};
     var gap=r.width*0.06;
     var side=Math.floor(Math.min(r.height*0.86, (r.width-gap*3)/2));
     var top=r.top+(r.height-side)/2;
     var x0=r.left+(r.width-(side*2+gap))/2;
+    if(top<r.top) top=r.top;
+    if(top+side>r.top+r.height) top=r.top+Math.max(0,r.height-side);
     [['muse-tile',x0],['dots-tile',x0+side+gap]].forEach(function(t){
       var el=document.getElementById(t[0]); if(!el) return;
       el.style.left=Math.round(t[1])+'px'; el.style.top=Math.round(top)+'px';

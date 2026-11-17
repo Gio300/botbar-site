@@ -198,8 +198,10 @@
     }
     return relay.ac;
   }
-  /* Bot voices always play on /chat (Auto, Zoom or website source alike). Browsers only start audio after one
-     interaction, so a small "tap for bot sound" chip shows while voices are arriving but sound is still locked. */
+  /* Bot voices always play on /chat (Auto/website and Phone). Zoom is a future SDK path.
+     Browsers start audio after a gesture; we resume on any input, on pageshow, and on a short
+     timer so a screen-share of /chat can hear bots after one tap (or a prior gesture). A silent
+     keep-alive holds the AudioContext open so Chrome does not suspend it mid-share. */
   function soundChip(show) {
     var el = document.getElementById("bb-sound-chip");
     if (!el && show) {
@@ -211,14 +213,32 @@
     }
     if (el) el.style.display = show ? "block" : "none";
   }
+  function keepAlive() {
+    var ac = relay.ac; if (!ac || ac.state !== "running" || relay.keep) return;
+    try {
+      var buf = ac.createBuffer(1, Math.max(1, Math.floor(ac.sampleRate * 0.05)), ac.sampleRate);
+      var src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+      var g = ac.createGain(); g.gain.value = 0.0;
+      src.connect(g); g.connect(ac.destination); src.start();
+      relay.keep = src;
+    } catch (e) {}
+  }
   function unlockAudio() {
     var ac = audioCtx();
-    if (ac && ac.state !== "running") { try { ac.resume().then(function () { soundChip(false); }).catch(function () {}); } catch (e) {} }
-    else soundChip(false);
+    if (!ac) return;
+    if (ac.state !== "running") {
+      try { ac.resume().then(function () { keepAlive(); soundChip(false); }).catch(function () {}); } catch (e) {}
+    } else { keepAlive(); soundChip(false); }
   }
-  ["pointerup", "touchend", "click", "keydown"].forEach(function (ev) {
+  ["pointerup", "pointerdown", "touchend", "click", "keydown"].forEach(function (ev) {
     global.addEventListener(ev, unlockAudio, { passive: true, capture: true });
   });
+  global.addEventListener("pageshow", unlockAudio);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) unlockAudio(); });
+  setInterval(function () {
+    var ac = relay.ac;
+    if (ac && ac.state !== "running") { try { ac.resume().then(keepAlive).catch(function () {}); } catch (e) {} }
+  }, 1500);
   function relayCanvas(which) {
     var tile = document.getElementById(which + "-tile");
     if (!tile) return null;
