@@ -211,7 +211,7 @@
       el = document.createElement("button"); el.id = "bb-sound-chip"; el.type = "button";
       el.textContent = "\uD83D\uDD0A Tap for bot sound";
       el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483647;padding:8px 12px;border:0;border-radius:999px;background:#f5d000;color:#1a1400;font:700 14px Arial,sans-serif;box-shadow:0 2px 10px #0006;cursor:pointer";
-      el.addEventListener("click", function () { unlockAudio(); });
+      el.addEventListener("click", function (e) { unlockAudio(e); });
       (document.body || document.documentElement).appendChild(el);
     }
     if (el) el.style.display = show ? "block" : "none";
@@ -226,9 +226,32 @@
       relay.keep = src;
     } catch (e) {}
   }
-  function unlockAudio() {
+  /* iPhone/iPad (Safari and Chrome both use WebKit): Web Audio is "ambient" by default, so the
+     ring/silent switch mutes it and it never starts without a touch. Ask for the media-playback
+     session and keep a silent looping <audio> element alive from the first tap, so bot voices
+     play like a video does (also what a Zoom/screen-share of this tab picks up). */
+  var SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+  function playbackSession() {
+    try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch (e) {}
+    try {
+      if (!relay.keepEl) {
+        var a = document.createElement("audio");
+        a.src = SILENT_WAV; a.loop = true; a.setAttribute("playsinline", ""); a.setAttribute("webkit-playsinline", "");
+        a.style.display = "none"; (document.body || document.documentElement).appendChild(a);
+        relay.keepEl = a;
+      }
+      if (relay.keepEl.paused) { var pr = relay.keepEl.play(); if (pr && pr.catch) pr.catch(function () {}); }
+    } catch (e) {}
+  }
+  function unlockAudio(ev) {
+    var gesture = !!(ev && ev.type && ev.type !== "pageshow" && ev.type !== "visibilitychange");
+    if (gesture) playbackSession();
     var ac = audioCtx();
     if (!ac) return;
+    if (gesture && ac.state !== "running") {
+      /* old WebKit only unlocks if a sound is started inside the tap itself */
+      try { var b0 = ac.createBuffer(1, 1, 22050), s0 = ac.createBufferSource(); s0.buffer = b0; s0.connect(ac.destination); s0.start(0); } catch (e) {}
+    }
     if (ac.state !== "running") {
       try { ac.resume().then(function () { keepAlive(); soundChip(false); }).catch(function () {}); } catch (e) {}
     } else { keepAlive(); soundChip(false); }
@@ -236,7 +259,7 @@
   ["pointerup", "pointerdown", "touchend", "click", "keydown"].forEach(function (ev) {
     global.addEventListener(ev, unlockAudio, { passive: true, capture: true });
   });
-  global.addEventListener("pageshow", unlockAudio);
+  global.addEventListener("pageshow", function () { unlockAudio(); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden) unlockAudio(); });
   setInterval(function () {
     var ac = relay.ac;
@@ -352,6 +375,9 @@
     ensureTiles();
     installFeeds();
     startRelay();
+    /* Offer the one tap up front (not only once a bot is already talking), so the page is
+       ready before the show; the chip hides itself as soon as sound is unlocked. */
+    setTimeout(function () { var ac = audioCtx(); if (ac && ac.state !== "running") soundChip(true); }, 1200);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
   });
 })(window);
