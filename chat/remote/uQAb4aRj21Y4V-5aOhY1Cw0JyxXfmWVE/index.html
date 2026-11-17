@@ -3,194 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>BotBar show remote</title>
+<meta name="robots" content="noindex">
+<title></title>
 <style>
-  :root { --bg:#0b1114; --card:#162227; --line:#2a3d44; --text:#e8f4f6; --muted:#8aa3ab; --acc:#f5d000; --go:#1ec98a; --stop:#e24b4b; --talk:#ff6a3d; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:Arial,system-ui,sans-serif; }
-  body { padding: calc(14px + env(safe-area-inset-top)) 14px calc(22px + env(safe-area-inset-bottom)); }
-  h1 { margin:0 0 4px; font-size:21px; letter-spacing:.04em; }
-  .conn { font-size:13px; color:var(--muted); margin-bottom:12px; }
-  .conn b.ok { color:var(--go); } .conn b.bad { color:var(--stop); }
-  .nav-row { display:flex; gap:12px; margin-bottom:12px; }
-  .nav-row button { flex:1; min-height:76px; font-size:30px; background:#d7ecef; border:0; border-radius:18px; font-weight:800; color:#081114; }
-  .play { width:100%; min-height:96px; font-size:36px; letter-spacing:.08em; background:var(--go); border:0; border-radius:18px; font-weight:800; color:#081114; margin-bottom:12px; }
-  .play.stop { background:var(--stop); color:#fff; }
-  .source { background:var(--card); border:2px solid var(--line); border-radius:16px; padding:10px 12px; margin-bottom:12px; font-size:15px; }
-  .source .now { font-size:22px; font-weight:800; color:var(--acc); }
-  .talk { width:100%; min-height:110px; border-radius:20px; border:4px solid #553; background:#2a2016; color:#ffd9c9; font-size:28px; font-weight:900; margin-bottom:12px; }
-  .hear { width:100%; min-height:70px; border-radius:18px; border:3px solid #345; background:#14222a; color:#bfe6ff; font-size:22px; font-weight:800; margin-bottom:12px; }
-  .hear.on { background:#2a8fd6; border-color:#fff; color:#00121f; }
-  .talk.on { background:var(--talk); border-color:#fff; color:#160600; box-shadow:0 0 22px #ff6a3d99; }
-  .toggles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .tile { background:var(--card); border:3px solid var(--line); border-radius:20px; padding:10px; display:flex; flex-direction:column; gap:8px; align-items:stretch; }
-  .sq { min-height:96px; border-radius:16px; border:3px solid #556; background:#223; color:#c9d; font-size:24px; font-weight:800; }
-  .sq.on { background:var(--acc); border-color:#fff3a8; color:#1a1400; }
-  .st { text-align:center; font-size:16px; font-weight:700; }
-  .st.listening, .st.active { color:var(--go); } .st.hold, .st.idle { color:var(--acc); } .st.not_connected { color:var(--stop); }
-  .meter { height:8px; background:#0d1518; border-radius:6px; overflow:hidden; }
-  .meter i { display:block; height:100%; width:0; background:var(--go); transition:width .15s; }
-  .foot { margin-top:14px; text-align:center; color:var(--muted); font-size:13px; }
-  button:active { transform:scale(.98); }
+  html,body { margin:0; min-height:100%; background:#0b1114; color:#e8f4f6; font-family:Arial,system-ui,sans-serif; }
+  form { display:none; max-width:420px; margin:0 auto; padding:calc(24px + env(safe-area-inset-top)) 18px 24px; }
+  form.on { display:block; }
+  h1 { font-size:20px; margin:0 0 14px; }
+  label { display:block; font-size:13px; color:#8aa3ab; margin-bottom:12px; }
+  input { width:100%; box-sizing:border-box; margin-top:4px; min-height:48px; border-radius:10px; border:2px solid #2a3d44; background:#0d1518; color:#e8f4f6; font-size:17px; padding:8px 10px; }
+  button { width:100%; min-height:56px; border:0; border-radius:14px; background:#1ec98a; color:#081114; font-size:19px; font-weight:800; }
+  #msg { min-height:20px; margin-top:12px; font-size:14px; color:#e24b4b; }
 </style>
 </head>
 <body>
-  <h1>BotBar remote</h1>
-  <div class="conn">Sensai: <b id="conn" class="bad">connecting…</b> · <span id="scene">Scene 1 / 9</span></div>
-  <div class="nav-row">
-    <button id="prev" type="button" aria-label="Previous scene">&#8592;</button>
-    <button id="next" type="button" aria-label="Next scene">&#8594;</button>
-  </div>
-  <button id="play" class="play" type="button">PLAY</button>
-  <div class="source">Bots are hearing: <span id="src" class="now">—</span><br><small id="srcnote">Priority: Phone talk (while ON) → Zoom → Website</small></div>
-  <button id="hear" class="hear" type="button" aria-pressed="false">HEAR BOTS: OFF<br><small>play Muse + Dots on this phone</small></button>
-  <button id="talk" class="talk" type="button" aria-pressed="false">TALK: OFF<br><small>tap to talk to the bots</small></button>
-  <div class="toggles">
-    <div class="tile">
-      <button id="muse" class="sq" type="button">Muse</button>
-      <div id="muse-st" class="st not_connected">Not connected</div>
-      <div class="meter"><i id="muse-m"></i></div>
-    </div>
-    <div class="tile">
-      <button id="dots" class="sq" type="button">Dots</button>
-      <div id="dots-st" class="st not_connected">Not connected</div>
-      <div class="meter"><i id="dots-m"></i></div>
-    </div>
-  </div>
-  <div class="foot">Tap Muse or Dots to switch between ACTIVE (may move and speak, hears) and IDLE (silent, still hears). Not connected means the bot isn't in the room or its window wasn't found. Talk is a toggle: it stays on until you tap it again, and turns itself off if this page closes.</div>
+<!-- Web backup sign-in only. No show controls live on this public page: the controls are served by Johnny's
+     relay, only while the KloudyBar app has switched Web backup ON, and only after passphrase + remote key. -->
+<form id="f" autocomplete="off">
+  <h1>BotBar web backup</h1>
+  <label>Passphrase<input id="p" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+  <label id="kl">Remote key<input id="k" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+  <button type="submit">Sign in</button>
+  <div id="msg"></div>
+</form>
 <script>
 (function () {
-  var $ = function (id) { return document.getElementById(id); };
-  var ws = null, st = null, mic = null;
-  var LABEL = { active: "ACTIVE · talks + hears", idle: "IDLE · silent, still hears", listening: "ACTIVE", hold: "IDLE", not_connected: "Not connected" };
-  var SRC = { phone: "Phone talk", zoom: "Zoom", website: "Website" };
-  /* Control key: only Johnny's remote may move the show. The key arrives once as #k=... (opened on his
-     phone from Sensai), is kept in this browser's localStorage and removed from the address bar. */
-  var KEY_NAME = "botbarRemoteKey", key = null, authed = false;
+  var f = document.getElementById("f"), base = null, KEY = "botbarRemoteKey", key = null;
   try {
     var hk = new URLSearchParams(location.hash.slice(1)).get("k");
-    if (hk) { localStorage.setItem(KEY_NAME, hk); history.replaceState(null, "", location.pathname + location.search); }
-    key = localStorage.getItem(KEY_NAME);
+    if (hk) { localStorage.setItem(KEY, hk); history.replaceState(null, "", location.pathname); }
+    key = localStorage.getItem(KEY);
   } catch (e) {}
-  function send(patch) { if (!authed) return; if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "control", patch: patch })); }
-  function render() {
-    if (!st) return;
-    var s = st.state || {};
-    $("play").textContent = s.playing ? "STOP" : "PLAY";
-    $("play").classList.toggle("stop", !!s.playing);
-    $("scene").textContent = "Scene " + (s.page || 1) + " / 9";
-    $("src").textContent = SRC[st.source] || st.source;
-    ["muse", "dots"].forEach(function (w) {
-      var b = (st.bots || {})[w] || {};
-      var on = s.playing && s[w] === "live";
-      $(w).classList.toggle("on", on);
-      $(w).setAttribute("aria-pressed", on ? "true" : "false");
-      $(w).textContent = (w === "muse" ? "Muse" : "Dots") + (on ? " · ACTIVE" : " · IDLE");
-      $(w + "-st").textContent = (LABEL[b.status] || "—") + (b.status === "not_connected" && b.why ? " (" + b.why + ")" : "") + (b.has_floor ? " · speaking turn" : "");
-      $(w + "-st").className = "st " + (b.status || "");
-      $(w + "-m").style.width = Math.min(100, Math.round((b.voice_level || 0) * 600)) + "%";
-    });
-    var talk = !!s.talk;
-    $("talk").classList.toggle("on", talk);
-    $("talk").setAttribute("aria-pressed", talk ? "true" : "false");
-    $("talk").innerHTML = talk ? "TALK: ON<br><small>bots hear your phone · tap to stop</small>" : "TALK: OFF<br><small>tap to talk to the bots</small>";
-    if (!talk && mic) stopMic();
+  if (key) document.getElementById("kl").style.display = "none";
+  function check() {
+    var go = base ? Promise.resolve(base) : fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); })
+      .then(function (c) { base = c.ws.replace(/^wss:/, "https:").replace(/^ws:/, "http:").replace(/\/feed$/, ""); return base; });
+    go.then(function (b) { return fetch(b + "/web/state?t=" + Date.now(), { cache: "no-store" }); }).then(function (r) { return r.json(); })
+      .then(function (s) { f.classList.toggle("on", !!s.on); }).catch(function () { f.classList.remove("on"); });
   }
-  function connect() {
-    fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
-      ws = new WebSocket(cfg.ws.replace(/\/feed$/, "/remote")); ws.binaryType = "arraybuffer";
-      ws.onopen = function () {
-        $("conn").textContent = key ? "checking key..." : "view only (no remote key on this device)"; $("conn").className = key ? "" : "bad";
-        if (key) ws.send(JSON.stringify({ type: "auth", k: key }));
-      };
-      ws.onmessage = function (ev) { if (typeof ev.data !== "string") return; try { var j = JSON.parse(ev.data); if (j.kind === "auth") { authed = !!j.ok; $("conn").textContent = authed ? "connected" : "view only (remote key rejected)"; $("conn").className = authed ? "ok" : "bad"; } if (j.kind === "status") { st = j; render(); } } catch (e) {} };
-      ws.onclose = function () { $("conn").textContent = "offline — retrying"; $("conn").className = "bad"; ws = null; stopMic(); setTimeout(connect, 2500); };
-    }).catch(function () { setTimeout(connect, 4000); });
-  }
-  function startMic() {
-    if (mic) return Promise.resolve();
-    return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
-      var ac = new (window.AudioContext || window.webkitAudioContext)();
-      var src = ac.createMediaStreamSource(stream);
-      var proc = ac.createScriptProcessor(2048, 1, 1);
-      var ratio = ac.sampleRate / 24000;
-      proc.onaudioprocess = function (e) {
-        if (!ws || ws.readyState !== 1) return;
-        var x = e.inputBuffer.getChannelData(0), n = Math.floor(x.length / ratio), out = new Int16Array(n);
-        for (var i = 0; i < n; i++) { var v = x[Math.floor(i * ratio)]; out[i] = Math.max(-1, Math.min(1, v)) * 32767; }
-        ws.send(out.buffer);
-      };
-      var mute = ac.createGain(); mute.gain.value = 0;
-      src.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played back */
-      mic = { stream: stream, ac: ac, proc: proc };
-    });
-  }
-  function stopMic() {
-    if (!mic) return;
-    try { mic.proc.disconnect(); mic.stream.getTracks().forEach(function (t) { t.stop(); }); mic.ac.close(); } catch (e) {}
-    mic = null;
-  }
-  $("talk").onclick = function () {
-    var on = !(st && st.state && st.state.talk);
-    if (on) startMic().then(function () { send({ talk: true }); }).catch(function () { alert("Microphone permission is needed for Talk."); });
-    else { send({ talk: false }); stopMic(); }
+  f.onsubmit = function (e) {
+    e.preventDefault();
+    var k = key || document.getElementById("k").value, msg = document.getElementById("msg");
+    msg.textContent = "";
+    fetch(base + "/web/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pass: document.getElementById("p").value, k: k }) })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        if (j.ok) {
+          if (!key) try { localStorage.setItem(KEY, k); } catch (e) {}
+          location.href = base + "/web/ui?t=" + encodeURIComponent(j.ticket);
+        } else msg.textContent = j.error === "too_many" ? "Too many attempts. Try again later." : j.error === "off" ? "" : "Not accepted.";
+        if (j.error === "off") f.classList.remove("on");
+      }).catch(function () { msg.textContent = "Not accepted."; });
   };
-  /* HEAR: plays the bots' voices (the read-only /feed audio) on this phone only. Default OFF so a phone that
-     is also in Zoom doesn't echo. Muted automatically while TALK is on, so the mic can never pick it up and loop
-     it back into the bots. Nothing here reaches Sensai's CABLE Input or speakers. */
-  var hear = null;
-  function hearMuted() { return !!(st && st.state && st.state.talk); }
-  function startHear() {
-    if (hear) return;
-    var ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume();
-    var out = ac.createGain(); out.connect(ac.destination);
-    hear = { ac: ac, out: out, t: { muse: 0, dots: 0 }, ws: null, hdr: null, stop: false };
-    (function open() {
-      if (!hear || hear.stop) return;
-      fetch("/chat/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (cfg) {
-        if (!hear) return;
-        var h = hear, f = new WebSocket(cfg.ws); f.binaryType = "arraybuffer"; h.ws = f;
-        f.onmessage = function (ev) {
-          if (typeof ev.data === "string") { try { var j = JSON.parse(ev.data); h.hdr = j.kind === "audio" ? j : null; } catch (e) { h.hdr = null; } return; }
-          var hd = h.hdr; h.hdr = null; if (!hd || hearMuted()) return;
-          var pcm = new Int16Array(ev.data), sr = hd.sr || 24000, n = pcm.length; if (!n) return;
-          var buf = h.ac.createBuffer(1, n, sr), ch = buf.getChannelData(0);
-          for (var i = 0; i < n; i++) ch[i] = pcm[i] / 32768;
-          var src = h.ac.createBufferSource(); src.buffer = buf; src.connect(h.out);
-          var now = h.ac.currentTime, w = hd.which === "dots" ? "dots" : "muse";
-          if (h.t[w] < now + 0.05 || h.t[w] > now + 1.0) h.t[w] = now + 0.12;
-          src.start(h.t[w]); h.t[w] += n / sr;
-        };
-        f.onclose = function () { if (hear === h && !h.stop) setTimeout(open, 2500); };
-      }).catch(function () { setTimeout(open, 4000); });
-    })();
-  }
-  function stopHear() { if (!hear) return; hear.stop = true; try { hear.ws && hear.ws.close(); hear.ac.close(); } catch (e) {} hear = null; }
-  function renderHear() {
-    var on = !!hear, m = on && hearMuted();
-    $("hear").classList.toggle("on", on); $("hear").setAttribute("aria-pressed", on ? "true" : "false");
-    $("hear").innerHTML = on ? (m ? "HEAR BOTS: ON (muted while TALK)<br><small>tap to stop</small>" : "HEAR BOTS: ON<br><small>bots play on this phone · tap to stop</small>") : "HEAR BOTS: OFF<br><small>play Muse + Dots on this phone</small>";
-    if (hear) hear.out.gain.value = m ? 0 : 1;
-  }
-  $("hear").onclick = function () { if (hear) stopHear(); else startHear(); renderHear(); };
-  setInterval(renderHear, 500);
-  $("prev").onclick = function () { var p = ((st && st.state.page) || 1) - 1; send({ page: Math.max(1, p) }); };
-  $("next").onclick = function () { var p = ((st && st.state.page) || 1) + 1; send({ page: Math.min(9, p) }); };
-  $("play").onclick = function () {
-    if (st && st.state.playing) send({ playing: false, muse: "hold", dots: "hold", talk: false });
-    else send({ playing: true });
-  };
-  ["muse", "dots"].forEach(function (w) {
-    $(w).onclick = function () {
-      var s = (st && st.state) || {}, p = {};
-      p[w] = s[w] === "live" && s.playing ? "hold" : "live";
-      if (p[w] === "live") p.playing = true;
-      send(p);
-    };
-  });
-  window.addEventListener("pagehide", function () { if (st && st.state.talk) send({ talk: false }); });
-  connect();
+  check(); setInterval(check, 10000);
 })();
 </script>
 </body>
