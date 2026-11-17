@@ -198,9 +198,23 @@
     }
     return relay.ac;
   }
+  /* Bot voices always play on /chat (Auto, Zoom or website source alike). Browsers only start audio after one
+     interaction, so a small "tap for bot sound" chip shows while voices are arriving but sound is still locked. */
+  function soundChip(show) {
+    var el = document.getElementById("bb-sound-chip");
+    if (!el && show) {
+      el = document.createElement("button"); el.id = "bb-sound-chip"; el.type = "button";
+      el.textContent = "\uD83D\uDD0A Tap for bot sound";
+      el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483647;padding:8px 12px;border:0;border-radius:999px;background:#f5d000;color:#1a1400;font:700 14px Arial,sans-serif;box-shadow:0 2px 10px #0006;cursor:pointer";
+      el.addEventListener("click", function () { unlockAudio(); });
+      (document.body || document.documentElement).appendChild(el);
+    }
+    if (el) el.style.display = show ? "block" : "none";
+  }
   function unlockAudio() {
     var ac = audioCtx();
-    if (ac && ac.state !== "running") { try { ac.resume(); } catch (e) {} }
+    if (ac && ac.state !== "running") { try { ac.resume().then(function () { soundChip(false); }).catch(function () {}); } catch (e) {} }
+    else soundChip(false);
   }
   ["pointerup", "touchend", "click", "keydown"].forEach(function (ev) {
     global.addEventListener(ev, unlockAudio, { passive: true, capture: true });
@@ -229,7 +243,9 @@
     else { var im = new Image(); im.onload = function () { draw(im); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(blob); }
   }
   function relayAudio(which, h, buf) {
-    var ac = audioCtx(); if (!ac || ac.state !== "running") return;
+    var ac = audioCtx(); if (!ac) return;
+    if (ac.state !== "running") { try { ac.resume(); } catch (e) {} soundChip(true); return; }
+    soundChip(false);
     var pcm = new Int16Array(buf); if (!pcm.length) return;
     var sr = h.sr || 24000, b = ac.createBuffer(1, pcm.length, sr), d = b.getChannelData(0);
     for (var i = 0; i < pcm.length; i++) d[i] = pcm[i] / 32768;
