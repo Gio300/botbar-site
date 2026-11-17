@@ -195,7 +195,10 @@
      no WebRTC/TURN needed). URL comes from feed.json next to this script. ---- */
   var relay = { last: { muse: 0, dots: 0 }, ac: null, next: { muse: 0, dots: 0 }, ws: null };
   function relayLive(which) { return Date.now() - relay.last[which] < 5000; }
-  function audioCtx() {
+  var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
+  function audioCtx(gesture) {
+    if (!relay.ac && IOS && !gesture) return null; /* iPhone: build it inside the tap so the playback session applies */
     if (!relay.ac) {
       try { relay.ac = new (global.AudioContext || global.webkitAudioContext)(); } catch (e) { relay.ac = null; }
     }
@@ -246,7 +249,7 @@
   function unlockAudio(ev) {
     var gesture = !!(ev && ev.type && ev.type !== "pageshow" && ev.type !== "visibilitychange");
     if (gesture) playbackSession();
-    var ac = audioCtx();
+    var ac = audioCtx(gesture);
     if (!ac) return;
     if (gesture && ac.state !== "running") {
       /* old WebKit only unlocks if a sound is started inside the tap itself */
@@ -289,12 +292,13 @@
     else { var im = new Image(); im.onload = function () { draw(im); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(blob); }
   }
   function relayAudio(which, h, buf) {
-    var ac = audioCtx(); if (!ac) return;
+    var ac = audioCtx(); if (!ac) { soundChip(true); return; }
     if (ac.state !== "running") { try { ac.resume(); } catch (e) {} soundChip(true); return; }
     soundChip(false);
     var pcm = new Int16Array(buf); if (!pcm.length) return;
     var sr = h.sr || 24000, b = ac.createBuffer(1, pcm.length, sr), d = b.getChannelData(0);
-    for (var i = 0; i < pcm.length; i++) d[i] = pcm[i] / 32768;
+    for (var i = 0; i < pcm.length; i++) { d[i] = pcm[i] / 32768; var av = d[i] < 0 ? -d[i] : d[i]; if (av > relay.peak[which]) relay.peak[which] = av; }
+    relay.played[which] += pcm.length;
     var src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination);
     var t = Math.max(ac.currentTime + 0.08, relay.next[which]);
     if (t - ac.currentTime > 0.6) t = ac.currentTime + 0.08; /* drop backlog, stay live */
@@ -377,7 +381,18 @@
     startRelay();
     /* Offer the one tap up front (not only once a bot is already talking), so the page is
        ready before the show; the chip hides itself as soon as sound is unlocked. */
-    setTimeout(function () { var ac = audioCtx(); if (ac && ac.state !== "running") soundChip(true); }, 1200);
+    setTimeout(function () { var ac = audioCtx(); if (!ac || ac.state !== "running") soundChip(true); }, 1200);
+    /* Small playback report to the relay log every 5 s (no user data): lets us see from Sensai
+       whether a phone is unlocked and actually playing bot audio. */
+    setInterval(function () {
+      var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
+      var ac = relay.ac, k = relay.keepEl;
+      try { ws.send(JSON.stringify({ type: "diag", v: "fix4", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
+        t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
+        keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
+        played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState })); } catch (e) {}
+      relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
+    }, 5000);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
   });
 })(window);
