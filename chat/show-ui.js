@@ -1,10 +1,12 @@
 (function () {
+  /* Page count comes from the deck itself, so a new deck needs no edit here. */
+  function maxPage() { return document.querySelectorAll('.bb-chat-page').length || 1; }
   function currentPage() {
     var n = +new URLSearchParams((location.hash || '').slice(1)).get('page') || 1;
-    return Math.max(1, Math.min(9, n | 0));
+    return Math.max(1, Math.min(maxPage(), n | 0));
   }
   function goPage(n) {
-    n = Math.max(1, Math.min(9, n | 0));
+    n = Math.max(1, Math.min(maxPage(), n | 0));
     var want = '#page=' + n;
     if (location.hash !== want) location.hash = 'page=' + n;
     if (window.BotBarChatSync && BotBarChatSync.get().page !== n) {

@@ -66,7 +66,7 @@
     });
     BotBarChatSync.subscribe(function (s, src) {
       if (typeof show === "function" && s.page) {
-        var n = Math.max(0, Math.min(8, (s.page | 0) - 1));
+        var n = Math.max(0, Math.min((document.querySelectorAll(".bb-chat-page").length || 1) - 1, (s.page | 0) - 1));
         if (typeof page === "number" && n !== page) {
           applying = true;
           try { show(n); } finally { applying = false; }
