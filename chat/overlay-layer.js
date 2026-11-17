@@ -193,7 +193,9 @@
 
   /* ---- Relay feed: frames + voice over a plain WebSocket (works on any network,
      no WebRTC/TURN needed). URL comes from feed.json next to this script. ---- */
-  var relay = { last: { muse: 0, dots: 0 }, ac: null, next: { muse: 0, dots: 0 }, ws: null };
+  var relay = { last: { muse: 0, dots: 0 }, ac: null, next: { muse: 0, dots: 0 }, ws: null,
+    under: { muse: 0, dots: 0 }, skips: 0, botLoudUntil: 0, mic: null, micSent: 0, micGated: 0 };
+  var JITTER_LEAD = 0.25;
   function relayLive(which) { return Date.now() - relay.last[which] < 5000; }
   var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
@@ -251,6 +253,8 @@
     if (gesture) playbackSession();
     var ac = audioCtx(gesture);
     if (!ac) return;
+    if (gesture && micWanted() && !relay.mic) { var acm = ac; setTimeout(function () { if (acm.state === "running") startWebMic(); else acm.resume().then(startWebMic).catch(function () {}); }, 0); }
+    setTimeout(micChip, 300);
     if (gesture && ac.state !== "running") {
       /* old WebKit only unlocks if a sound is started inside the tap itself */
       try { var b0 = ac.createBuffer(1, 1, 22050), s0 = ac.createBufferSource(); s0.buffer = b0; s0.connect(ac.destination); s0.start(0); } catch (e) {}
@@ -292,6 +296,7 @@
     else { var im = new Image(); im.onload = function () { draw(im); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(blob); }
   }
   function relayAudio(which, h, buf) {
+    if (!webOut()) return; /* remote: no Website / Phone->Web toggle on -> voices are not for the website */
     var ac = audioCtx(); if (!ac) { soundChip(true); return; }
     if (ac.state !== "running") { try { ac.resume(); } catch (e) {} soundChip(true); return; }
     soundChip(false);
@@ -300,9 +305,86 @@
     for (var i = 0; i < pcm.length; i++) { d[i] = pcm[i] / 32768; var av = d[i] < 0 ? -d[i] : d[i]; if (av > relay.peak[which]) relay.peak[which] = av; }
     relay.played[which] += pcm.length;
     var src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination);
-    var t = Math.max(ac.currentTime + 0.08, relay.next[which]);
-    if (t - ac.currentTime > 0.6) t = ac.currentTime + 0.08; /* drop backlog, stay live */
+    /* Jitter buffer (ROUTES 2026-11-17): keep ~250 ms queued per bot. Chunks chain back to back; only a
+       real underrun (queue ran dry) re-buffers, so network bursts no longer chop the voice into pieces. */
+    var now = ac.currentTime, nx = relay.next[which], t;
+    if (!nx || nx < now + 0.02) { t = now + JITTER_LEAD; if (nx) relay.under[which]++; }
+    else if (nx > now + 1.2) { t = now + JITTER_LEAD; relay.skips++; } /* far behind live: jump ahead */
+    else t = nx;
     src.start(t); relay.next[which] = t + b.duration;
+    var pk = 0; for (var k = 0; k < d.length; k += 8) { var q = d[k] < 0 ? -d[k] : d[k]; if (q > pk) pk = q; }
+    if (pk > 0.02 && t + b.duration > relay.botLoudUntil) relay.botLoudUntil = t + b.duration; /* for the mic echo gate */
+  }
+  /* ---- Website mic -> bots (ROUTES 2026-11-17) ----
+     Only while the remote's Website toggle is on. A page sends its mic only after an explicit tap on the
+     "mic" chip (remembered on that device) or when opened with ?mic=1 (presenter / Zoom PC: the mic is
+     requested right after the "Tap for bot sound" tap). Echo: echoCancellation on, and while this page is
+     playing a bot voice the mic is skipped unless someone talks clearly over it. */
+  var MIC_FLAG = /[?&#]mic=1\b/.test(location.search + location.hash);
+  function micWanted() { try { return MIC_FLAG || global.localStorage.getItem("bbmic") === "1"; } catch (e) { return MIC_FLAG; } }
+  function routesNow() { var r = relay.status && relay.status.routes; return r || { web_io: true, phone_io: false, phone_web: true }; }
+  function webIn() { return !!routesNow().web_io; }
+  function webOut() { var o = relay.status && relay.status.outputs; return !o || o.website !== false; }
+  function micChip() {
+    var el = document.getElementById("bb-mic-chip");
+    var unlocked = relay.ac && relay.ac.state === "running";
+    var show = webIn() && (relay.mic ? true : unlocked);
+    if (!el && show) {
+      el = document.createElement("button"); el.id = "bb-mic-chip"; el.type = "button";
+      el.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;padding:8px 12px;border:0;border-radius:999px;font:700 14px Arial,sans-serif;box-shadow:0 2px 10px #0006;cursor:pointer";
+      el.addEventListener("click", function () {
+        if (relay.mic) { stopWebMic(); try { global.localStorage.removeItem("bbmic"); } catch (e) {} }
+        else { try { global.localStorage.setItem("bbmic", "1"); } catch (e) {} startWebMic(); }
+        micChip();
+      });
+      (document.body || document.documentElement).appendChild(el);
+    }
+    if (!el) return;
+    el.style.display = show ? "block" : "none";
+    var on = !!relay.mic;
+    el.textContent = on ? "\uD83C\uDF99\uFE0F Bots hear this mic" : "\uD83C\uDF99\uFE0F Tap so bots hear this mic";
+    el.style.background = on ? "#1ec98a" : "#2a3d44"; el.style.color = on ? "#04130c" : "#e8f4f6";
+  }
+  function micSocket() {
+    if (!relay.wsUrl) return null;
+    var m = relay.mic; if (!m) return null;
+    if (m.ws && m.ws.readyState <= 1) return m.ws;
+    var u = relay.wsUrl.replace(/\/feed(\?.*)?$/, "/webmic");
+    try { m.ws = new WebSocket(u); m.ws.binaryType = "arraybuffer"; } catch (e) { m.ws = null; }
+    return m.ws;
+  }
+  function startWebMic() {
+    if (relay.mic || relay.micStarting || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    var ac = relay.ac; if (!ac) return;
+    relay.micStarting = true;
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
+      relay.micStarting = false;
+      var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
+      mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
+      var ratio = ac.sampleRate / 24000;
+      relay.mic = { stream: stream, proc: proc, src: srcN, ws: null };
+      proc.onaudioprocess = function (e) {
+        var st = relay.status && relay.status.state;
+        if (!relay.mic || !webIn() || !(st && st.playing)) return;
+        var x = e.inputBuffer.getChannelData(0), s2 = 0;
+        for (var i = 0; i < x.length; i++) s2 += x[i] * x[i];
+        var r = Math.sqrt(s2 / x.length);
+        if (ac.currentTime < relay.botLoudUntil + 0.15 && r < 0.1) { relay.micGated++; return; } /* bot voice playing here: skip echo */
+        var ws = micSocket(); if (!ws || ws.readyState !== 1) return;
+        var n = Math.floor(x.length / ratio), out = new Int16Array(n);
+        for (var j = 0; j < n; j++) {
+          var a0 = Math.floor(j * ratio), a1 = Math.max(a0 + 1, Math.floor((j + 1) * ratio)), acc = 0;
+          for (var q = a0; q < a1 && q < x.length; q++) acc += x[q];
+          var v = acc / (a1 - a0); out[j] = Math.max(-1, Math.min(1, v)) * 32767;
+        }
+        try { ws.send(out.buffer); relay.micSent++; } catch (err) {}
+      };
+      micChip();
+    }).catch(function () { relay.micStarting = false; micChip(); });
+  }
+  function stopWebMic() {
+    var m = relay.mic; relay.mic = null; if (!m) return;
+    try { m.proc.disconnect(); m.src.disconnect(); m.stream.getTracks().forEach(function (t) { t.stop(); }); if (m.ws) m.ws.close(); } catch (e) {}
   }
   setInterval(function () {
     ["muse", "dots"].forEach(function (w) {
@@ -318,6 +400,8 @@
   var lastRemotePage = null;
   function relayStatus(st) {
     relay.status = st;
+    if (relay.mic && !webIn()) { /* Website toggle off: keep the stream but send nothing (checked per frame) */ }
+    micChip();
     var p = st && st.state && st.state.page;
     if (!p || p === lastRemotePage) return;
     lastRemotePage = p;
@@ -350,6 +434,7 @@
     var url = new URL("feed.json", scriptUrl()).href + "?t=" + Date.now();
     fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
       if (!cfg || !cfg.ws) { setTimeout(startRelay, 15000); return; }
+      relay.wsUrl = cfg.ws;
       var ws = new WebSocket(cfg.ws); ws.binaryType = "arraybuffer"; relay.ws = ws;
       var hdr = null;
       ws.onmessage = function (ev) {
@@ -367,7 +452,8 @@
       ws.onerror = function () { try { ws.close(); } catch (e) {} };
     }).catch(function () { setTimeout(startRelay, 15000); });
   }
-  global.BotBarRelay = { remote: function () { return relay.status; }, status: function () { return { page: lastRemotePage, ws: relay.ws ? relay.ws.readyState : -1, last: relay.last, audio: relay.ac ? relay.ac.state : "none" }; } };
+  global.BotBarRelay = { remote: function () { return relay.status; }, status: function () { return { page: lastRemotePage, ws: relay.ws ? relay.ws.readyState : -1, last: relay.last, audio: relay.ac ? relay.ac.state : "none",
+    under: relay.under, skips: relay.skips, mic: relay.mic ? (relay.mic.ws ? relay.mic.ws.readyState : "nows") : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut(), webIn: webIn() }; } };
 
   function ready(fn) {
     if (document.body) fn();
@@ -387,10 +473,11 @@
     setInterval(function () {
       var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
       var ac = relay.ac, k = relay.keepEl;
-      try { ws.send(JSON.stringify({ type: "diag", v: "fix4", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
+      try { ws.send(JSON.stringify({ type: "diag", v: "routes1", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
         t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
-        played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState })); } catch (e) {}
+        played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,
+        under: relay.under, skips: relay.skips, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut() })); } catch (e) {}
       relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
     }, 5000);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
