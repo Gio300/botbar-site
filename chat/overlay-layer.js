@@ -272,6 +272,24 @@
     var ac = relay.ac;
     if (ac && ac.state !== "running") { try { ac.resume().then(keepAlive).catch(function () {}); } catch (e) {} }
   }, 1500);
+  /* Stall watchdog (ROUTES 2026-11-17): an iPhone showed its audio clock frozen while reporting "running"
+     (after an interruption), so queued voices never played. If the clock stops, try suspend/resume; if it
+     stays frozen, drop the context and show the sound chip so one tap rebuilds it. */
+  relay.stalls = 0;
+  setInterval(function () {
+    var ac = relay.ac; if (!ac || document.hidden) { relay.lastT = null; return; }
+    var t = ac.currentTime;
+    if (ac.state === "running" && relay.lastT != null && t === relay.lastT) relay.stall = (relay.stall || 0) + 1; else relay.stall = 0;
+    relay.lastT = t;
+    if (relay.stall === 2) { try { ac.suspend().then(function () { return ac.resume(); }).catch(function () {}); } catch (e) {} }
+    if (relay.stall >= 4) {
+      relay.stalls++; relay.stall = 0; relay.lastT = null;
+      stopWebMic();
+      try { ac.close(); } catch (e) {}
+      relay.ac = null; relay.keep = null; relay.next = { muse: 0, dots: 0 }; relay.botLoudUntil = 0;
+      soundChip(true);
+    }
+  }, 1000);
   function relayCanvas(which) {
     var tile = document.getElementById(which + "-tile");
     if (!tile) return null;
@@ -453,7 +471,7 @@
     }).catch(function () { setTimeout(startRelay, 15000); });
   }
   global.BotBarRelay = { remote: function () { return relay.status; }, status: function () { return { page: lastRemotePage, ws: relay.ws ? relay.ws.readyState : -1, last: relay.last, audio: relay.ac ? relay.ac.state : "none",
-    under: relay.under, skips: relay.skips, mic: relay.mic ? (relay.mic.ws ? relay.mic.ws.readyState : "nows") : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut(), webIn: webIn() }; } };
+    under: relay.under, skips: relay.skips, stalls: relay.stalls, mic: relay.mic ? (relay.mic.ws ? relay.mic.ws.readyState : "nows") : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut(), webIn: webIn() }; } };
 
   function ready(fn) {
     if (document.body) fn();
@@ -477,7 +495,7 @@
         t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
         played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,
-        under: relay.under, skips: relay.skips, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut() })); } catch (e) {}
+        under: relay.under, skips: relay.skips, stalls: relay.stalls, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut() })); } catch (e) {}
       relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
     }, 5000);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
