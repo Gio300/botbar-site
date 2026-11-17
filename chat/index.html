@@ -17,8 +17,8 @@ body{position:fixed;inset:0}
     placeTiles();
   }
   /* Muse and Dots sit side by side inside scene 1's reserved .bb-chat-ai pane under TensorVerse. */
-  /* Remeasured every placement (no stale first-layout cache). visualViewport offset is subtracted
-     so iPhone URL-bar chrome cannot slide the tiles onto the title or keyboard. Clamped inside the pane. */
+  /* Remeasured every placement (no stale first-layout cache). Position uses getBoundingClientRect
+     directly (766bb6c math) so iOS visualViewport.offset is not subtracted twice. Clamped in the pane. */
   function scene1Rect(){
     var p0=pages[0]; if(!p0) return null;
     var pane=p0.querySelector('.bb-chat-ai'); if(!pane) return null;
@@ -29,9 +29,7 @@ body{position:fixed;inset:0}
     return b.width>0&&b.height>0?b:null;
   }
   function placeTiles(){
-    var g=scene1Rect(); if(!g) return;
-    var vv=window.visualViewport;
-    var r={left:g.left-(vv?vv.offsetLeft:0), top:g.top-(vv?vv.offsetTop:0), width:g.width, height:g.height};
+    var r=scene1Rect(); if(!r) return;
     var gap=r.width*0.06;
     var side=Math.floor(Math.min(r.height*0.86, (r.width-gap*3)/2));
     var top=r.top+(r.height-side)/2;
