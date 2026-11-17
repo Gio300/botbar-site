@@ -65,7 +65,10 @@
   }
   function setVisible(tile, vid, on) {
     if (!tile) return;
-    if (on && relayLive(tile.id === "muse-tile" ? "muse" : "dots")) return;
+    /* A tile drawn from the relay feed stays up until the feed itself goes stale
+       (1 s check below). The PeerJS sync's playing:false / disconnect must not hide it,
+       or the two layers fight and the frame flickers. */
+    if (relayLive(tile.id === "muse-tile" ? "muse" : "dots")) return;
     if (on && hasLive(vid && vid.srcObject) && vid.videoWidth > 0) {
       tile.hidden = false;
       tile.classList.add("live");
