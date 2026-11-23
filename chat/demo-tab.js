@@ -7,11 +7,13 @@
   var BIN = "demo328.bin?v=328e202611230505";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
+  var ENABLED_KEY = "botbar.demo328.enabled";
   var cfg = function () { return global.BOTBAR_DEMO_CONFIG || {}; };
 
-  var tab, promptEl, input, msg, card, overlay, panel, mount;
+  var tab, promptEl, input, msg, card, overlay, panel, mount, switchEl;
   var demoOpen = false;
   var promptOpen = false;
+  var enabled = true;
   var busy = false;
   var holdRaf = 0;
   var saved = [];
@@ -35,6 +37,35 @@
     try { global.localStorage.removeItem(LOCK_KEY); } catch (e) {}
   }
 
+  function switchCfg() {
+    var c = cfg();
+    return c["switch"] || {};
+  }
+  function readEnabled() {
+    var fallback = switchCfg().default !== false;
+    try {
+      var raw = global.localStorage.getItem(ENABLED_KEY);
+      if (raw == null || raw === "") return fallback;
+      if (raw === "0" || raw === "false" || raw === "off") return false;
+      if (raw === "1" || raw === "true" || raw === "on") return true;
+      return fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+  function writeEnabled(on) {
+    try { global.localStorage.setItem(ENABLED_KEY, on ? "1" : "0"); } catch (e) {}
+  }
+  function offsetPx(value, size, fallback) {
+    if (value == null || value === "") return fallback;
+    if (typeof value === "number" && isFinite(value)) return value;
+    var s = String(value).trim();
+    var n = parseFloat(s);
+    if (!isFinite(n)) return fallback;
+    if (/%$/.test(s)) return size * n / 100;
+    return n;
+  }
+
   function el(tag, cls, parent) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -45,6 +76,7 @@
   function build() {
     var c = cfg();
     var side = c.tabSide === "left" ? "left" : "right";
+    enabled = readEnabled();
     tab = el("button");
     tab.id = "bb328-tab";
     tab.type = "button";
@@ -54,9 +86,32 @@
     tab.style.top = c.tabOffsetY || "50%";
     tab.style.transform = "translateY(-50%)";
     tab.style[side] = "0";
+    tab.hidden = !enabled;
     tab.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
     tab.addEventListener("pointerup", function (e) { e.stopPropagation(); });
     tab.addEventListener("click", onTab);
+
+    var sw = switchCfg();
+    var swLabel = sw.label || "Emulator";
+    switchEl = el("button");
+    switchEl.id = "bb328-switch";
+    switchEl.type = "button";
+    switchEl.setAttribute("role", "switch");
+    switchEl.setAttribute("aria-checked", enabled ? "true" : "false");
+    switchEl.setAttribute("aria-label", swLabel);
+    var swText = el("span", "bb328-switch-label", switchEl);
+    swText.textContent = swLabel;
+    var knob = el("span", "bb328-switch-knob", switchEl);
+    knob.setAttribute("aria-hidden", "true");
+    switchEl.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+    switchEl.addEventListener("pointerup", function (e) { e.stopPropagation(); });
+    switchEl.addEventListener("click", onSwitch);
+    switchEl.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "PageUp" || e.key === "PageDown") {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
 
     promptEl = el("div");
     promptEl.id = "bb328-prompt";
@@ -109,10 +164,35 @@
       overlay.addEventListener(ev, function (e) { e.preventDefault(); });
     });
 
+    document.body.appendChild(switchEl);
     document.body.appendChild(tab);
     document.body.appendChild(promptEl);
     document.body.appendChild(overlay);
     applyShell();
+    placeSwitch();
+  }
+
+  function placeSwitch() {
+    if (!switchEl) return;
+    var header = document.querySelector(".bb-chat-page.bb-current header.bb-chat-brand")
+      || document.querySelector("header.bb-chat-brand");
+    if (!header) return;
+    var r = header.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) return;
+    var sw = switchCfg();
+    var side = sw.position === "top-left" ? "left" : "right";
+    var top = offsetPx(sw.top, r.height, 6);
+    switchEl.style.top = Math.round(r.top + top) + "px";
+    switchEl.style.bottom = "auto";
+    if (side === "left") {
+      var left = offsetPx(sw.left != null ? sw.left : sw.right, r.width, 8);
+      switchEl.style.left = Math.round(r.left + left) + "px";
+      switchEl.style.right = "auto";
+    } else {
+      var right = offsetPx(sw.right, r.width, 8);
+      switchEl.style.left = "auto";
+      switchEl.style.right = Math.round((global.innerWidth - r.right) + right) + "px";
+    }
   }
 
   function applyShell() {
@@ -125,9 +205,18 @@
   function onTab(e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!enabled) return;
     if (demoOpen) closeDemo();
     else if (promptOpen) closePrompt();
     else openPrompt();
+  }
+
+  function onSwitch(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setEnabled(!enabled, true);
   }
 
   function openPrompt() {
@@ -404,7 +493,19 @@
     mount.replaceChildren();
     restoreTiles();
     overlay.hidden = true;
-    tab.setAttribute("aria-label", "Open 328 demo");
+    if (tab) tab.setAttribute("aria-label", "Open 328 demo");
+  }
+
+  function setEnabled(on, persist) {
+    if (!on) {
+      if (promptOpen) closePrompt();
+      closeDemo();
+    }
+    enabled = !!on;
+    if (persist) writeEnabled(enabled);
+    if (switchEl) switchEl.setAttribute("aria-checked", enabled ? "true" : "false");
+    if (tab) tab.hidden = !enabled;
+    if (!enabled && promptEl) promptEl.hidden = true;
   }
 
   document.addEventListener("keydown", function (e) {
@@ -422,12 +523,23 @@
   }, true);
 
   global.addEventListener("resize", function () {
+    placeSwitch();
     var phone = mount && mount.querySelector(".bb328-phone");
     if (phone) phone.removeAttribute("data-fit");
     if (demoOpen) fitPhone();
   });
+  global.addEventListener("hashchange", placeSwitch);
+  if (global.visualViewport) global.visualViewport.addEventListener("resize", placeSwitch);
 
-  function start() { build(); }
+  function start() {
+    build();
+    requestAnimationFrame(placeSwitch);
+    var pagesRoot = document.getElementById("botbar-presentation");
+    if (pagesRoot && global.MutationObserver) {
+      var mo = new MutationObserver(function () { placeSwitch(); });
+      mo.observe(pagesRoot, { attributes: true, subtree: true, attributeFilter: ["class"] });
+    }
+  }
   if (document.body) start();
   else document.addEventListener("DOMContentLoaded", start);
 })(window);

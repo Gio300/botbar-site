@@ -2,8 +2,10 @@
 
 The chat deck stays as it is until someone uses the thin tab on the right edge.
 
-- `demo-tab.css` — tab, passphrase card, and PiP shell.
-- `demo-tab.config.js` — `window.BOTBAR_DEMO_CONFIG` positions (overlay, Muse, Dots, emulator, tab).
+A small Emulator pill (`#bb328-switch`, `aria-checked` true or false) sits in the top-right of the current page's brand header. It starts on. Turning it off closes an open prompt or PiP, puts Muse and Dots back, and hides the pull tab. The choice is kept in `localStorage` under `botbar.demo328.enabled`. Label, default, and corner offsets are the `switch` block in `demo-tab.config.js`.
+
+- `demo-tab.css` — tab, emulator switch, passphrase card, and PiP shell.
+- `demo-tab.config.js` — `window.BOTBAR_DEMO_CONFIG` positions (overlay, Muse, Dots, emulator, tab, switch).
 - `demo-tab.js` — tab, passphrase prompt, PBKDF2-SHA256, AES-256-GCM decrypt of `demo328.bin`, in-memory player.
 - `demo328.bin` — encrypted walkthrough (player, autoplay steps, interactive screen map, frames). Header: `D328`, version `1`, iteration count, 16-byte salt, 12-byte IV, then ciphertext. GCM failure means the passphrase was wrong. The passphrase is not in this repo.
 
