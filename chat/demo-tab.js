@@ -4,7 +4,7 @@
   if (global.__BOTBAR_DEMO_TAB__) return;
   global.__BOTBAR_DEMO_TAB__ = true;
 
-  var BIN = "demo328.bin?v=328e202611230742";
+  var BIN = "demo328.bin?v=328e202611230849";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
   var ENABLED_KEY = "botbar.demo328.enabled";
@@ -132,11 +132,18 @@
     var label = el("label", "", card);
     label.textContent = "Passphrase";
     input = el("input", "", label);
-    input.type = "password";
-    input.name = "bb328-unlock";
-    input.autocomplete = "off";
+    input.type = "text";
+    input.name = "bb328-gate-note";
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("autocapitalize", "off");
+    input.setAttribute("autocorrect", "off");
+    input.setAttribute("spellcheck", "false");
+    input.setAttribute("data-lpignore", "true");
+    input.setAttribute("data-1p-ignore", "true");
+    input.setAttribute("data-form-type", "other");
     input.spellcheck = false;
     input.setAttribute("aria-label", "Passphrase");
+    input.addEventListener("input", onGateInput);
     var go = el("button", "", card);
     go.type = "submit";
     go.textContent = "Unlock";
@@ -273,15 +280,51 @@
   function openPrompt() {
     promptOpen = true;
     promptEl.hidden = false;
-    input.value = "";
+    clearGate();
     showLockMessage();
     syncGuards();
     setTimeout(function () { try { input.focus(); } catch (e) {} }, 0);
   }
+  var gateSecret = "";
+  function gateMasked() {
+    try { return !(window.CSS && CSS.supports("-webkit-text-security", "disc")); }
+    catch (e) { return true; }
+  }
+  function onGateInput() {
+    if (!gateMasked()) return;
+    var shown = input.value;
+    var discs = "";
+    for (var n = 0; n < gateSecret.length; n++) discs += "\u2022";
+    if (shown === discs) return;
+    if (shown.indexOf("\u2022") === -1) gateSecret = shown;
+    else if (shown.length === discs.length + 1 && shown.slice(0, -1) === discs) gateSecret += shown.charAt(shown.length - 1);
+    else if (shown.length < discs.length && discs.indexOf(shown) === 0) gateSecret = gateSecret.slice(0, shown.length);
+    else {
+      var next = "";
+      var si = 0;
+      for (var i = 0; i < shown.length; i++) {
+        var ch = shown.charAt(i);
+        if (ch === "\u2022" && si < gateSecret.length) { next += gateSecret.charAt(si); si++; }
+        else if (ch !== "\u2022") next += ch;
+      }
+      gateSecret = next;
+    }
+    var masked = "";
+    for (var j = 0; j < gateSecret.length; j++) masked += "\u2022";
+    if (input.value !== masked) input.value = masked;
+  }
+  function gateValue() {
+    return gateMasked() ? gateSecret : input.value;
+  }
+  function clearGate() {
+    gateSecret = "";
+    if (input) input.value = "";
+  }
+
   function closePrompt() {
     promptOpen = false;
     promptEl.hidden = true;
-    input.value = "";
+    clearGate();
     try { input.blur(); } catch (e) {}
     if (lockTimer) { clearInterval(lockTimer); lockTimer = 0; }
     syncGuards();
@@ -354,15 +397,15 @@
       images[im.name] = new Blob([copy], { type: im.type || "image/webp" });
       off += im.length;
     }
-    return { player: meta.player, steps: meta.steps, screens: meta.screens || null, images: images };
+    return { player: meta.player, steps: meta.steps, screens: meta.screens || null, images: images, icons: meta.icons || null };
   }
 
   async function onSubmit(e) {
     e.preventDefault();
     e.stopPropagation();
     if (busy) return;
-    var pass = input.value;
-    input.value = "";
+    var pass = gateValue();
+    clearGate();
     if (!pass) {
       shake("Enter the passphrase");
       return;
@@ -488,10 +531,11 @@
     var boot = new Function(payload.player + "\n;return (typeof bb328Boot===\"function\")?bb328Boot:null;")();
     payload.player = "";
     if (typeof boot === "function") {
-      session = boot(mount, { steps: payload.steps, screens: payload.screens, images: payload.images });
+      session = boot(mount, { steps: payload.steps, screens: payload.screens, images: payload.images, icons: payload.icons || {} });
     }
     payload.steps = null;
     payload.screens = null;
+    payload.icons = null;
     syncGuards();
   }
 
