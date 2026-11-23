@@ -1,7 +1,7 @@
 /* Pull tab + passphrase + PiP shell. Tile and phone positions come from demo-tab.config.js. */
 #bb328-tab {
   position: fixed;
-  z-index: 2147483646;
+  z-index: 2147483644;
   width: 18px;
   height: 78px;
   margin: 0;
@@ -148,7 +148,7 @@
 #bb328-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2147483640;
+  z-index: 2147483646;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -169,18 +169,117 @@
 }
 #bb328-close {
   position: absolute;
-  z-index: 6;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 32px;
+  z-index: 9;
+  top: calc(env(safe-area-inset-top, 0px) + 6px);
+  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  left: auto;
+  width: 40px;
+  height: 40px;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.62);
   color: #fff;
-  font: 700 18px/1 Arial, Helvetica, sans-serif;
+  font: 700 22px/1 Arial, Helvetica, sans-serif;
   cursor: pointer;
+  touch-action: manipulation;
+}
+#bb328-handle {
+  position: absolute;
+  z-index: 8;
+  top: calc(env(safe-area-inset-top, 0px) + 2px);
+  left: 50%;
+  width: 96px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: translateX(-50%);
+  cursor: grab;
+  touch-action: none;
+}
+.bb328-grip {
+  display: block;
+  width: 48px;
+  height: 5px;
+  margin: 8px auto 0;
+  border-radius: 99px;
+  background: #ffffffd0;
+  box-shadow: 0 1px 2px #0008;
+}
+html.bb328-open,
+html.bb328-open body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+html.bb328-open #bb-sound-chip,
+html.bb328-open #bb-mic-chip,
+html.bb328-open #bb328-tab {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+#muse-tile.bb328-bots-hidden,
+#dots-tile.bb328-bots-hidden {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+#bb328-panel.bb328-fill {
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  max-width: 100dvw;
+  max-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  background: #0b0d10;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+#bb328-panel.bb328-fill.is-phone #bb328-mount {
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  right: env(safe-area-inset-right, 0px);
+  bottom: env(safe-area-inset-bottom, 0px);
+  left: env(safe-area-inset-left, 0px);
+}
+#bb328-panel.bb328-fill.is-desktop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+#bb328-panel.bb328-fill.is-desktop #bb328-mount {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  width: auto;
+  max-width: 100dvw;
+  aspect-ratio: var(--bb328-aspect, 0.461538);
+  flex: 0 0 auto;
+}
+#bb328-panel.bb328-fill .bb328-phone {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  transform: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  top: auto !important;
+  left: auto !important;
+  aspect-ratio: auto !important;
+}
+#bb328-panel.bb328-fill.is-desktop .bb328-phone {
+  border-radius: 28px !important;
+  border: 3px solid #2c343a !important;
+}
+#bb328-panel.bb328-fill .bb328-phone canvas {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
 }
 #bb328-mount { position: absolute; inset: 0; }
 .bb328-phone {
@@ -196,7 +295,7 @@
 }
 .bb328-phone.is-interactive {
   pointer-events: auto;
-  touch-action: none;
+  touch-action: manipulation;
 }
 .bb328-phone canvas {
   position: absolute;
@@ -208,9 +307,11 @@
 }
 .bb328-demo-tag {
   position: absolute;
-  z-index: 2;
-  top: 4px;
-  right: 12px;
+  z-index: 8;
+  top: calc(env(safe-area-inset-top, 0px) + 44px);
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 2px 7px;
   border-radius: 999px;
   background: #f5d000;
@@ -224,15 +325,29 @@
 }
 .bb328-controls {
   position: absolute;
-  left: 12px;
-  right: 28px;
-  bottom: 54px;
+  top: calc(env(safe-area-inset-top, 0px) + 40px);
+  left: 8px;
+  right: auto;
+  bottom: auto;
   z-index: 8;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  width: auto;
+  max-width: calc(100% - 16px);
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(12, 16, 20, 0.72);
   pointer-events: auto;
+}
+.bb328-controls.is-auto {
+  top: auto;
+  left: 8px;
+  right: 8px;
+  bottom: 12px;
+  max-width: none;
+  border-radius: 16px;
 }
 .bb328-play {
   flex: 0 0 auto;
@@ -291,14 +406,16 @@
 }
 .bb328-arrow { min-width: 28px; padding-left: 0; padding-right: 0; }
 .bb328-controls.is-interactive .bb328-play,
-.bb328-controls.is-interactive .bb328-dots { display: none; }
+.bb328-controls.is-interactive .bb328-dots,
+.bb328-controls.is-interactive .bb328-caption,
+.bb328-controls.is-interactive .bb328-arrows { display: none; }
 .bb328-controls.is-auto .bb328-unfold,
 .bb328-controls.is-auto .bb328-arrows { display: none; }
 .bb328-back {
   position: absolute;
-  z-index: 4;
-  top: 18px;
-  left: 16px;
+  z-index: 12;
+  top: 96px;
+  left: 10px;
   display: none;
   background: rgba(12, 16, 20, 0.9);
   color: #f5d000;
