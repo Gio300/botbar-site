@@ -4,7 +4,7 @@
   if (global.__BOTBAR_DEMO_TAB__) return;
   global.__BOTBAR_DEMO_TAB__ = true;
 
-  var BIN = "demo328.bin?v=328e202611230505";
+  var BIN = "demo328.bin?v=328e202611230742";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
   var ENABLED_KEY = "botbar.demo328.enabled";
@@ -149,6 +149,38 @@
     el("div", "bb328-backdrop", overlay);
     panel = el("div", "", overlay);
     panel.id = "bb328-panel";
+    var handle = el("button", "", panel);
+    handle.id = "bb328-handle";
+    handle.type = "button";
+    handle.setAttribute("aria-label", "Pull down to close");
+    var grip = el("span", "bb328-grip", handle);
+    grip.setAttribute("aria-hidden", "true");
+    var drag = null;
+    handle.addEventListener("pointerdown", function (e) {
+      if (!demoOpen || (e.button != null && e.button !== 0)) return;
+      drag = { id: e.pointerId, y: e.clientY };
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    handle.addEventListener("pointermove", function (e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var dy = e.clientY - drag.y;
+      panel.style.transform = dy > 0 ? "translateY(" + Math.min(dy, 220) + "px)" : "";
+    });
+    function endDrag(e) {
+      if (!drag || (e && e.pointerId !== drag.id)) return;
+      var dy = e ? e.clientY - drag.y : 0;
+      drag = null;
+      panel.style.transform = "";
+      var need = (cfg().handle && cfg().handle.closeDrag) || 56;
+      if (dy > need) closeDemo();
+    }
+    handle.addEventListener("pointerup", endDrag);
+    handle.addEventListener("pointercancel", function () {
+      drag = null;
+      panel.style.transform = "";
+    });
     var x = el("button", "", panel);
     x.id = "bb328-close";
     x.type = "button";
@@ -198,8 +230,27 @@
   function applyShell() {
     var c = cfg();
     var o = c.overlay || {};
-    panel.style.inset = o.inset || "3vh 3vw";
-    panel.style.borderRadius = o.radius || "24px";
+    var fs = c.fullscreen || {};
+    var desktopMin = fs.desktopMin || 1100;
+    var desktop = global.innerWidth >= desktopMin;
+    if (demoOpen && panel) {
+      panel.classList.add("bb328-fill");
+      panel.classList.toggle("is-desktop", desktop);
+      panel.classList.toggle("is-phone", !desktop);
+      var aspect = fs.aspect || (c.emulator && c.emulator.aspect) || (9 / 19.5);
+      panel.style.setProperty("--bb328-aspect", String(aspect));
+      panel.style.inset = "0";
+      panel.style.borderRadius = "0";
+      panel.style.width = fs.phone || "100dvw";
+      panel.style.height = fs.height || "100dvh";
+    } else if (panel) {
+      panel.classList.remove("bb328-fill", "is-desktop", "is-phone");
+      panel.style.inset = o.inset || "3vh 3vw";
+      panel.style.borderRadius = o.radius || "24px";
+      panel.style.width = "";
+      panel.style.height = "";
+      panel.style.removeProperty("--bb328-aspect");
+    }
   }
 
   function onTab(e) {
@@ -224,13 +275,16 @@
     promptEl.hidden = false;
     input.value = "";
     showLockMessage();
+    syncGuards();
     setTimeout(function () { try { input.focus(); } catch (e) {} }, 0);
   }
   function closePrompt() {
     promptOpen = false;
     promptEl.hidden = true;
     input.value = "";
+    try { input.blur(); } catch (e) {}
     if (lockTimer) { clearInterval(lockTimer); lockTimer = 0; }
+    syncGuards();
   }
 
   function showLockMessage() {
@@ -365,90 +419,71 @@
     return ["muse-tile", "dots-tile"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
   }
 
-  function captureTile(node) {
-    return {
-      node: node,
-      parent: node.parentNode,
-      next: node.nextSibling,
-      style: node.getAttribute("style")
-    };
-  }
-
-  function specFor(id) {
-    var c = cfg();
-    if (id === "muse-tile") return c.muse || { top: "2%", left: "2%", width: "22%" };
-    return c.dots || { top: "2%", right: "2%", width: "22%" };
-  }
-
-  function placeTile(node) {
-    var spec = specFor(node.id);
-    node.style.setProperty("position", "absolute", "important");
-    node.style.setProperty("top", spec.top || "2%", "important");
-    node.style.setProperty("width", spec.width || "22%", "important");
-    node.style.setProperty("height", "auto", "important");
-    node.style.setProperty("aspect-ratio", "1 / 1", "important");
-    node.style.setProperty("margin", "0", "important");
-    node.style.setProperty("z-index", "5", "important");
-    if (spec.left != null) {
-      node.style.setProperty("left", spec.left, "important");
-      node.style.setProperty("right", "auto", "important");
-    }
-    if (spec.right != null) {
-      node.style.setProperty("right", spec.right, "important");
-      node.style.setProperty("left", "auto", "important");
-    }
-  }
-
-  function fitPhone() {
-    var phone = mount.querySelector(".bb328-phone");
-    if (!phone) return;
-    var em = cfg().emulator || {};
-    var aspect = em.aspect || (9 / 19.5);
-    phone.style.position = "absolute";
-    phone.style.left = "50%";
-    phone.style.top = em.top || "16%";
-    phone.style.transform = "translateX(-50%)";
-    phone.style.maxWidth = "calc(100% - 16px)";
-    phone.style.height = "auto";
-    phone.style.aspectRatio = String(aspect);
-    if (phone.getAttribute("data-fit") !== "1") {
-      phone.style.width = em.width || "min(78%, 340px)";
-      phone.setAttribute("data-fit", "1");
-    }
-    var w = phone.getBoundingClientRect().width;
-    if (w < 20) {
-      phone.removeAttribute("data-fit");
-      return;
-    }
-    var maxH = panel.clientHeight - phone.offsetTop - 150;
-    var h = w / aspect;
-    var target = w;
-    if (maxH > 80 && h > maxH + 1) target = Math.max(96, Math.floor(maxH * aspect));
-    var cur = parseFloat(phone.style.width);
-    if (!/px$/.test(phone.style.width) || Math.abs(cur - target) > 1) {
-      phone.style.width = Math.round(target) + "px";
-    }
-  }
-
-  function hold() {
-    if (!demoOpen) return;
-    holdRaf = requestAnimationFrame(hold);
-    if (!demoOpen) return;
-    applyShell();
+  function hideBots() {
     var tiles = tileNodes();
-    for (var i = 0; i < tiles.length; i++) {
-      if (!demoOpen) return;
-      if (tiles[i].parentNode !== panel) panel.appendChild(tiles[i]);
-      placeTile(tiles[i]);
+    for (var i = 0; i < tiles.length; i++) tiles[i].classList.add("bb328-bots-hidden");
+  }
+  function showBots() {
+    var nodes = document.querySelectorAll(".bb328-bots-hidden");
+    for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove("bb328-bots-hidden");
+  }
+
+  var botWatch = null;
+  function watchBots(on) {
+    if (botWatch) { botWatch.disconnect(); botWatch = null; }
+    if (!on || !global.MutationObserver) return;
+    var root = document.getElementById("botbar-overlay-root");
+    if (!root) return;
+    botWatch = new MutationObserver(function () { if (demoOpen) hideBots(); });
+    botWatch.observe(root, { childList: true });
+  }
+
+  var docKeys = false;
+  var guardOn = false;
+  function onDocKey(e) {
+    if (e.key !== "Escape") return;
+    if (promptOpen) {
+      e.preventDefault();
+      e.stopPropagation();
+      closePrompt();
+    } else if (demoOpen) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeDemo();
     }
-    fitPhone();
+  }
+  function guardMove(e) {
+    if (!demoOpen) return;
+    var n = e.target;
+    if (n && n.closest && n.closest("[data-bb328-hscroll], [data-bb328-vscroll]")) return;
+    e.preventDefault();
+  }
+  function syncGuards() {
+    var need = !!(promptOpen || demoOpen);
+    if (need && !docKeys) {
+      document.addEventListener("keydown", onDocKey, true);
+      docKeys = true;
+    } else if (!need && docKeys) {
+      document.removeEventListener("keydown", onDocKey, true);
+      docKeys = false;
+    }
+    if (demoOpen && overlay && !guardOn) {
+      overlay.addEventListener("touchmove", guardMove, { passive: false });
+      guardOn = true;
+    } else if (!demoOpen && overlay && guardOn) {
+      overlay.removeEventListener("touchmove", guardMove);
+      guardOn = false;
+    }
+    document.documentElement.classList.toggle("bb328-open", !!demoOpen);
   }
 
   function openDemo(payload) {
     demoOpen = true;
     global.__BOTBAR_DEMO_OPEN__ = true;
-    saved = tileNodes().map(captureTile);
+    hideBots();
+    watchBots(true);
     overlay.hidden = false;
+    applyShell();
     tab.setAttribute("aria-label", "Close 328 demo");
     var boot = new Function(payload.player + "\n;return (typeof bb328Boot===\"function\")?bb328Boot:null;")();
     payload.player = "";
@@ -457,27 +492,7 @@
     }
     payload.steps = null;
     payload.screens = null;
-    hold();
-  }
-
-  function restoreTiles() {
-    for (var i = saved.length - 1; i >= 0; i--) {
-      var item = saved[i];
-      var node = item.node;
-      ["position", "top", "left", "right", "width", "height", "aspect-ratio", "margin", "z-index", "transform"].forEach(function (p) {
-        node.style.removeProperty(p);
-      });
-      if (item.style) node.setAttribute("style", item.style);
-      else node.removeAttribute("style");
-      var parent = item.parent;
-      if (!parent) continue;
-      if (item.next && item.next.parentNode === parent) parent.insertBefore(node, item.next);
-      else parent.appendChild(node);
-    }
-    saved = [];
-    if (typeof global.BotBarPlaceTiles === "function") {
-      try { global.BotBarPlaceTiles(); } catch (e) {}
-    }
+    syncGuards();
   }
 
   function closeDemo() {
@@ -486,14 +501,18 @@
     global.__BOTBAR_DEMO_OPEN__ = false;
     if (holdRaf) cancelAnimationFrame(holdRaf);
     holdRaf = 0;
+    watchBots(false);
     if (session && session.destroy) {
       try { session.destroy(); } catch (e) {}
     }
     session = null;
     mount.replaceChildren();
-    restoreTiles();
+    showBots();
+    if (panel) panel.style.transform = "";
+    applyShell();
     overlay.hidden = true;
     if (tab) tab.setAttribute("aria-label", "Open 328 demo");
+    syncGuards();
   }
 
   function setEnabled(on, persist) {
@@ -508,25 +527,9 @@
     if (!enabled && promptEl) promptEl.hidden = true;
   }
 
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape") return;
-    if (promptOpen) {
-      e.preventDefault();
-      e.stopPropagation();
-      closePrompt();
-    } else if (demoOpen) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (session && session.back && session.back()) return;
-      closeDemo();
-    }
-  }, true);
-
   global.addEventListener("resize", function () {
     placeSwitch();
-    var phone = mount && mount.querySelector(".bb328-phone");
-    if (phone) phone.removeAttribute("data-fit");
-    if (demoOpen) fitPhone();
+    if (demoOpen) applyShell();
   });
   global.addEventListener("hashchange", placeSwitch);
   if (global.visualViewport) global.visualViewport.addEventListener("resize", placeSwitch);
