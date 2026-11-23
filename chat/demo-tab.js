@@ -4,7 +4,7 @@
   if (global.__BOTBAR_DEMO_TAB__) return;
   global.__BOTBAR_DEMO_TAB__ = true;
 
-  var BIN = "demo328.bin?v=328e202611230849";
+  var BIN = "demo328.bin?v=328e202611230904";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
   var ENABLED_KEY = "botbar.demo328.enabled";
@@ -501,7 +501,16 @@
     if (n && n.closest && n.closest("[data-bb328-hscroll], [data-bb328-vscroll]")) return;
     e.preventDefault();
   }
+  function parkChrome() {
+    if (!panel) return;
+    var handle = document.getElementById("bb328-handle");
+    var closeBtn = document.getElementById("bb328-close");
+    if (handle && handle.parentElement !== panel) panel.appendChild(handle);
+    if (closeBtn && closeBtn.parentElement !== panel) panel.appendChild(closeBtn);
+  }
+
   function syncGuards() {
+    if (switchEl) switchEl.hidden = !!demoOpen;
     var need = !!(promptOpen || demoOpen);
     if (need && !docKeys) {
       document.addEventListener("keydown", onDocKey, true);
@@ -522,6 +531,7 @@
 
   function openDemo(payload) {
     demoOpen = true;
+    if (switchEl) switchEl.hidden = true;
     global.__BOTBAR_DEMO_OPEN__ = true;
     hideBots();
     watchBots(true);
@@ -541,6 +551,7 @@
 
   function closeDemo() {
     if (!demoOpen && overlay.hidden) return;
+    parkChrome();
     demoOpen = false;
     global.__BOTBAR_DEMO_OPEN__ = false;
     if (holdRaf) cancelAnimationFrame(holdRaf);

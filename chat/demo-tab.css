@@ -170,13 +170,16 @@
   box-shadow: 0 24px 80px #0009;
 }
 #bb328-close {
-  position: absolute;
-  z-index: 9;
-  top: calc(env(safe-area-inset-top, 0px) + 6px);
-  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  position: relative;
+  z-index: 2;
+  top: auto;
+  right: auto;
   left: auto;
+  flex: 0 0 40px;
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border: 0;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.62);
@@ -186,25 +189,30 @@
   touch-action: manipulation;
 }
 #bb328-handle {
-  position: absolute;
-  z-index: 8;
-  top: calc(env(safe-area-inset-top, 0px) + 2px);
-  left: 50%;
-  width: 96px;
-  height: 28px;
+  position: relative;
+  z-index: 2;
+  top: auto;
+  left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 40px;
+  min-height: 40px;
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
-  transform: translateX(-50%);
+  transform: none;
   cursor: grab;
   touch-action: none;
 }
 .bb328-grip {
   display: block;
-  width: 48px;
+  width: 36px;
   height: 5px;
-  margin: 8px auto 0;
+  margin: 0;
   border-radius: 99px;
   background: #ffffffd0;
   box-shadow: 0 1px 2px #0008;
@@ -216,7 +224,9 @@ html.bb328-open body {
 }
 html.bb328-open #bb-sound-chip,
 html.bb328-open #bb-mic-chip,
-html.bb328-open #bb328-tab {
+html.bb328-open #bb328-tab,
+html.bb328-open #bb328-switch {
+  display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
 }
@@ -277,7 +287,7 @@ html.bb328-open #bb328-tab {
   border-radius: 28px !important;
   border: 3px solid #2c343a !important;
 }
-#bb328-panel.bb328-fill .bb328-phone > canvas {
+#bb328-panel.bb328-fill .bb328-stage > canvas {
   inset: 0;
   width: 100%;
   height: 100%;
@@ -287,6 +297,8 @@ html.bb328-open #bb328-tab {
 .bb328-phone {
   z-index: 1;
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: #05070a;
   border: 3px solid #2c343a;
   border-radius: 28px;
@@ -295,61 +307,111 @@ html.bb328-open #bb328-tab {
   box-sizing: border-box;
   pointer-events: none;
 }
+.bb328-strip {
+  position: relative;
+  z-index: 20;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: #101418;
+  color: #f4f7f8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: auto;
+}
+.bb328-strip-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 4px 6px 4px 10px;
+  box-sizing: border-box;
+}
+.bb328-clock {
+  flex: 0 0 auto;
+  min-width: 36px;
+  font: 600 12px/1 Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: #f4f7f8;
+}
+.bb328-strip-auto {
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  padding: 0 8px 6px;
+  box-sizing: border-box;
+}
+.bb328-phone.is-auto .bb328-strip-auto { display: flex; }
+.bb328-strip-auto .bb328-caption { flex: 1 1 80px; min-width: 0; }
+.bb328-strip-auto .bb328-dots { flex: 1 1 100%; }
+.bb328-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
 .bb328-phone.is-interactive {
   pointer-events: auto;
   touch-action: manipulation;
 }
-.bb328-phone > canvas {
+.bb328-stage > canvas,
+#bb328-panel.bb328-fill .bb328-stage > canvas {
   position: absolute;
-  inset: 10px;
-  width: calc(100% - 20px);
-  height: calc(100% - 20px);
-  border-radius: 18px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
   display: block;
 }
 .bb328-demo-tag {
-  position: absolute;
-  z-index: 8;
-  top: calc(env(safe-area-inset-top, 0px) + 44px);
+  position: static;
+  z-index: auto;
+  top: auto;
   right: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: #f5d000;
-  color: #1a1400;
-  font: 700 10px/1.3 Arial, Helvetica, sans-serif;
-  letter-spacing: 0.06em;
+  left: auto;
+  transform: none;
+  flex: 0 0 auto;
+  padding: 0 2px;
+  border-radius: 0;
+  background: transparent;
+  color: #f5d000;
+  font: 700 10px/1.2 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.08em;
   pointer-events: auto;
   cursor: pointer;
-  min-width: 36px;
-  text-align: center;
+  min-width: 0;
+  text-align: left;
 }
 .bb328-controls {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 40px);
-  left: 8px;
+  position: static;
+  top: auto;
+  left: auto;
   right: auto;
   bottom: auto;
-  z-index: 8;
+  z-index: auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
   width: auto;
-  max-width: calc(100% - 16px);
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(12, 16, 20, 0.72);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   pointer-events: auto;
 }
 .bb328-controls.is-auto {
   top: auto;
-  left: 8px;
-  right: 8px;
-  bottom: 12px;
+  left: auto;
+  right: auto;
+  bottom: auto;
   max-width: none;
-  border-radius: 16px;
+  border-radius: 0;
 }
 .bb328-play {
   flex: 0 0 auto;
@@ -395,11 +457,12 @@ html.bb328-open #bb328-tab {
 .bb328-back {
   border: 0;
   border-radius: 999px;
-  padding: 5px 8px;
+  padding: 4px 7px;
   background: #243039;
   color: #f4f7f8;
-  font: 700 11px Arial, Helvetica, sans-serif;
+  font: 700 10px/1.2 Arial, Helvetica, sans-serif;
   cursor: pointer;
+  white-space: nowrap;
 }
 .bb328-mode.is-on,
 .bb328-unfold.is-on {
@@ -407,17 +470,15 @@ html.bb328-open #bb328-tab {
   color: #1a1400;
 }
 .bb328-arrow { min-width: 28px; padding-left: 0; padding-right: 0; }
-.bb328-controls.is-interactive .bb328-play,
-.bb328-controls.is-interactive .bb328-dots,
-.bb328-controls.is-interactive .bb328-caption,
-.bb328-controls.is-interactive .bb328-arrows { display: none; }
+.bb328-controls .bb328-arrows,
+.bb328-controls.is-interactive .bb328-arrows,
 .bb328-controls.is-auto .bb328-unfold,
 .bb328-controls.is-auto .bb328-arrows { display: none; }
 .bb328-back {
   position: absolute;
   z-index: 12;
-  top: 96px;
-  left: 10px;
+  top: 8px;
+  left: 8px;
   display: none;
   background: rgba(12, 16, 20, 0.9);
   color: #f5d000;
