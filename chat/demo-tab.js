@@ -4,7 +4,7 @@
   if (global.__BOTBAR_DEMO_TAB__) return;
   global.__BOTBAR_DEMO_TAB__ = true;
 
-  var BIN = "demo328.bin?v=328e202611230440";
+  var BIN = "demo328.bin?v=328e202611230505";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
   var cfg = function () { return global.BOTBAR_DEMO_CONFIG || {}; };
@@ -211,7 +211,7 @@
       images[im.name] = new Blob([copy], { type: im.type || "image/webp" });
       off += im.length;
     }
-    return { player: meta.player, steps: meta.steps, images: images };
+    return { player: meta.player, steps: meta.steps, screens: meta.screens || null, images: images };
   }
 
   async function onSubmit(e) {
@@ -331,7 +331,7 @@
       phone.removeAttribute("data-fit");
       return;
     }
-    var maxH = panel.clientHeight - phone.offsetTop - 130;
+    var maxH = panel.clientHeight - phone.offsetTop - 150;
     var h = w / aspect;
     var target = w;
     if (maxH > 80 && h > maxH + 1) target = Math.max(96, Math.floor(maxH * aspect));
@@ -364,9 +364,10 @@
     var boot = new Function(payload.player + "\n;return (typeof bb328Boot===\"function\")?bb328Boot:null;")();
     payload.player = "";
     if (typeof boot === "function") {
-      session = boot(mount, { steps: payload.steps, images: payload.images });
+      session = boot(mount, { steps: payload.steps, screens: payload.screens, images: payload.images });
     }
     payload.steps = null;
+    payload.screens = null;
     hold();
   }
 
@@ -415,6 +416,7 @@
     } else if (demoOpen) {
       e.preventDefault();
       e.stopPropagation();
+      if (session && session.back && session.back()) return;
       closeDemo();
     }
   }, true);

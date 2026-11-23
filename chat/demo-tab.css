@@ -140,6 +140,7 @@
 #bb328-mount { position: absolute; inset: 0; }
 .bb328-phone {
   z-index: 1;
+  position: relative;
   background: #05070a;
   border: 3px solid #2c343a;
   border-radius: 28px;
@@ -147,6 +148,10 @@
   overflow: hidden;
   box-sizing: border-box;
   pointer-events: none;
+}
+.bb328-phone.is-interactive {
+  pointer-events: auto;
+  touch-action: none;
 }
 .bb328-phone canvas {
   position: absolute;
@@ -167,7 +172,10 @@
   color: #1a1400;
   font: 700 10px/1.3 Arial, Helvetica, sans-serif;
   letter-spacing: 0.06em;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  min-width: 36px;
+  text-align: center;
 }
 .bb328-controls {
   position: absolute;
@@ -213,3 +221,113 @@
   cursor: pointer;
 }
 .bb328-dot.is-on { background: #f5d000; transform: scale(1.25); }
+.bb328-modes,
+.bb328-arrows {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.bb328-mode,
+.bb328-arrow,
+.bb328-unfold,
+.bb328-back {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #243039;
+  color: #f4f7f8;
+  font: 700 11px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+.bb328-mode.is-on,
+.bb328-unfold.is-on {
+  background: #f5d000;
+  color: #1a1400;
+}
+.bb328-arrow { min-width: 28px; padding-left: 0; padding-right: 0; }
+.bb328-controls.is-interactive .bb328-play,
+.bb328-controls.is-interactive .bb328-dots { display: none; }
+.bb328-controls.is-auto .bb328-unfold,
+.bb328-controls.is-auto .bb328-arrows { display: none; }
+.bb328-back {
+  position: absolute;
+  z-index: 4;
+  top: 18px;
+  left: 16px;
+  display: none;
+  background: rgba(12, 16, 20, 0.9);
+  color: #f5d000;
+  pointer-events: auto;
+}
+.bb328-phone.is-deep .bb328-back { display: inline-block; }
+.bb328-hots {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+.bb328-hot {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  overflow: hidden;
+}
+.bb328-hot:hover,
+.bb328-hot:focus-visible {
+  background: rgba(245, 208, 0, 0.18);
+  box-shadow: inset 0 0 0 1.5px rgba(245, 208, 0, 0.7);
+}
+.bb328-phone.bb328-debug .bb328-hot {
+  outline: 1px dashed rgba(245, 208, 0, 0.95);
+}
+.bb328-phone.bb328-debug .bb328-hot:not(.is-shown) {
+  background: rgba(245, 208, 0, 0.14);
+}
+.bb328-hot.is-shown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5d000;
+  color: #1a1400;
+  font: 700 13px/1.1 Arial, Helvetica, sans-serif;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px #0008;
+}
+.bb328-hot.is-shown:hover { background: #ffe14a; }
+.bb328-hot.is-rippling::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(245, 208, 0, 0.55);
+  transform: translate(-50%, -50%);
+  animation: bb328-ripple 0.45s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes bb328-ripple {
+  to { width: 160%; height: 160%; opacity: 0; }
+}
+.bb328-toast {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 16%;
+  transform: translateX(-50%);
+  max-width: 78%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(12, 16, 20, 0.92);
+  color: #f7f4ea;
+  font: 700 12px/1.3 Arial, Helvetica, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+.bb328-toast[hidden] { display: none !important; }
