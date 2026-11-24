@@ -339,7 +339,7 @@
      requested right after the "Tap for bot sound" tap). Echo: echoCancellation on, and while this page is
      playing a bot voice the mic is skipped unless someone talks clearly over it. */
   var MIC_FLAG = /[?&#]mic=1\b/.test(location.search + location.hash);
-  function micWanted() { try { return MIC_FLAG || global.localStorage.getItem("bbmic") === "1"; } catch (e) { return MIC_FLAG; } }
+  function micWanted() { if (relay.micOff) return false; /* tapped off: stays off until tapped on (even with ?mic=1) */ try { return MIC_FLAG || global.localStorage.getItem("bbmic") === "1"; } catch (e) { return MIC_FLAG; } }
   function routesNow() { var r = relay.status && relay.status.routes; return r || { web_io: true, phone_io: false, phone_web: true }; }
   function webIn() { return !!routesNow().web_io; }
   function webOut() { var o = relay.status && relay.status.outputs; return !o || o.website !== false; }
@@ -351,8 +351,8 @@
       el = document.createElement("button"); el.id = "bb-mic-chip"; el.type = "button";
       el.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;padding:8px 12px;border:0;border-radius:999px;font:700 14px Arial,sans-serif;box-shadow:0 2px 10px #0006;cursor:pointer";
       el.addEventListener("click", function () {
-        if (relay.mic) { stopWebMic(); try { global.localStorage.removeItem("bbmic"); } catch (e) {} }
-        else { try { global.localStorage.setItem("bbmic", "1"); } catch (e) {} startWebMic(); }
+        if (relay.mic || relay.micStarting) { relay.micOff = true; relay.micStarting = false; stopWebMic(); try { global.localStorage.removeItem("bbmic"); } catch (e) {} }
+        else { relay.micOff = false; try { global.localStorage.setItem("bbmic", "1"); } catch (e) {} startWebMic(); }
         micChip();
       });
       (document.body || document.documentElement).appendChild(el);
@@ -360,7 +360,7 @@
     if (!el) return;
     el.style.display = show ? "block" : "none";
     var on = !!relay.mic;
-    el.textContent = on ? "\uD83C\uDF99\uFE0F Bots hear this mic" : "\uD83C\uDF99\uFE0F Tap so bots hear this mic";
+    el.textContent = on ? "\uD83C\uDF99\uFE0F Mic ON \u00B7 bots hear you (tap to turn off)" : "\uD83D\uDD07 Mic OFF \u00B7 tap so bots hear you"; el.setAttribute("aria-pressed", on ? "true" : "false");
     el.style.background = on ? "#1ec98a" : "#2a3d44"; el.style.color = on ? "#04130c" : "#e8f4f6";
   }
   function micSocket() {
@@ -376,6 +376,7 @@
     var ac = relay.ac; if (!ac) return;
     relay.micStarting = true;
     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
+      if (relay.micOff) { relay.micStarting = false; stream.getTracks().forEach(function (t) { t.stop(); }); micChip(); return; } /* tapped off while asking */
       relay.micStarting = false;
       var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
       mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
