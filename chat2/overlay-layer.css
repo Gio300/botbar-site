@@ -15,6 +15,7 @@
 }
 .bot-tile[hidden] { display: none !important; }
 .bot-tile.live { display: block !important; }
+/* Fallback only; index.html placeTiles lays four across the strip. */
 #muse-tile { left: 2%; }
 #dots-tile { right: 2%; }
 #grokbot-tile { left: calc(2% + min(18vw, 22vh) + 1.2%); }
