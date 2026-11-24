@@ -41,3 +41,43 @@
 
 /* kbar: no on-page mic/sound chips — KloudyBar owns those controls */
 #bb-mic-chip, #bb-sound-chip { display: none !important; }
+
+/* Logo + waveform tiles (default when a bot has no usable live avatar).
+   Muse / Dots keep their live video/crop tiles; Grok and Grok Bot use logos. */
+.bot-logo-stage {
+  position: absolute; inset: 0;
+  display: none;
+  background: #1c1c22;
+  z-index: 0;
+}
+.bot-tile.logo-mode .bot-logo-stage { display: block; }
+.bot-tile.logo-mode video,
+.bot-tile.logo-mode canvas.bot-canvas { display: none !important; visibility: hidden !important; }
+.bot-logo-face {
+  position: absolute; inset: 22%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1; pointer-events: none;
+}
+.bot-logo { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.bot-monogram {
+  width: 72%; aspect-ratio: 1 / 1; border-radius: 50%;
+  background: #2a2a32; color: #f4f1e8;
+  display: flex; align-items: center; justify-content: center;
+  font: 700 2.4em/1 Arial, Helvetica, sans-serif;
+  letter-spacing: -0.04em;
+}
+canvas.bot-wave {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block; z-index: 0; pointer-events: none;
+}
+.bot-caption {
+  position: absolute; left: 8px; right: 8px; bottom: 28px;
+  z-index: 2; max-height: 2.6em;
+  padding: 3px 7px; border-radius: 6px;
+  background: rgba(0,0,0,.72); color: #f4f1e8;
+  font: 500 10px/1.3 Arial, Helvetica, sans-serif;
+  overflow: hidden;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.bot-caption[hidden] { display: none !important; }

@@ -2,16 +2,16 @@
   if (global.__BOTBAR_OVERLAY_LAYER__) return;
   global.__BOTBAR_OVERLAY_LAYER__ = true;
   var BOTS = [
-    { id: "muse", label: "Muse", tile: "muse-tile", vid: "muse-video" },
-    { id: "dots", label: "Dots", tile: "dots-tile", vid: "dots-video" },
-    { id: "grokbot", label: "Grok Bot", tile: "grokbot-tile", vid: "grokbot-video" },
-    { id: "grok", label: "Grok", tile: "grok-tile", vid: "grok-video" }
+    { id: "muse", label: "Muse", tile: "muse-tile", vid: "muse-video", liveCrop: true },
+    { id: "dots", label: "Dots", tile: "dots-tile", vid: "dots-video", liveCrop: true },
+    { id: "grokbot", label: "Grok Bot", tile: "grokbot-tile", vid: "grokbot-video", logo: "grokbot-logo.svg", preferLogo: true },
+    { id: "grok", label: "Grok", tile: "grok-tile", vid: "grok-video", logo: "grok-logo.svg", preferLogo: true }
   ];
   function botOf(which) { for (var i = 0; i < BOTS.length; i++) if (BOTS[i].id === which) return BOTS[i]; return null; }
   function botIds() { return BOTS.map(function (b) { return b.id; }); }
 
   function loadCss() {
-    var href = new URL("overlay-layer.css?v=kbar2", scriptUrl()).href;
+    var href = new URL("overlay-layer.css?v=logo1", scriptUrl()).href;
     if (document.querySelector('link[data-botbar-overlay]')) return;
     var l = document.createElement("link");
     l.rel = "stylesheet"; l.href = href; l.setAttribute("data-botbar-overlay", "1");
@@ -67,6 +67,174 @@
     return root;
   }
 
+  function preferLogo(b) { return !!(b && b.preferLogo); }
+  function usesLogoTile(which) {
+    var b = botOf(which);
+    if (!b) return true;
+    if (b.preferLogo) return true;
+    if (b.liveCrop) return false; /* Muse / Dots stay on their live tiles */
+    return !usableAvatar(which);
+  }
+  function usableAvatar(which) {
+    var b = botOf(which);
+    if (preferLogo(b)) return false;
+    var vid = document.getElementById(b ? b.vid : which + "-video");
+    if (vid && hasLive(vid.srcObject) && vid.videoWidth > 0) return true;
+    if (relayLive(which)) return true;
+    return false;
+  }
+  function assetUrl(name) {
+    return new URL("assets/" + name + "?v=logo1", scriptUrl()).href;
+  }
+  function ensureLogoStage(tile, b) {
+    if (!tile || !b) return null;
+    var stage = tile.querySelector(".bot-logo-stage");
+    if (stage) return stage;
+    stage = document.createElement("div");
+    stage.className = "bot-logo-stage";
+    var wave = document.createElement("canvas");
+    wave.className = "bot-wave";
+    wave.setAttribute("aria-hidden", "true");
+    var face = document.createElement("div");
+    face.className = "bot-logo-face";
+    if (b.logo) {
+      var img = document.createElement("img");
+      img.className = "bot-logo";
+      img.alt = b.label || "";
+      img.src = assetUrl(b.logo);
+      face.appendChild(img);
+    } else {
+      var mono = document.createElement("div");
+      mono.className = "bot-monogram";
+      mono.textContent = (b.initial || (b.label || "?").charAt(0)).toUpperCase();
+      face.appendChild(mono);
+    }
+    var cap = document.createElement("div");
+    cap.className = "bot-caption";
+    cap.hidden = true;
+    stage.appendChild(wave);
+    stage.appendChild(face);
+    stage.appendChild(cap);
+    tile.appendChild(stage);
+    return stage;
+  }
+  function setCaption(which, text) {
+    var tile = document.getElementById(which + "-tile");
+    if (!tile) return;
+    var cap = tile.querySelector(".bot-caption");
+    if (!cap) return;
+    text = String(text || "").replace(/\s+/g, " ").trim();
+    if (!text) { cap.hidden = true; cap.textContent = ""; return; }
+    cap.hidden = false;
+    cap.textContent = text;
+  }
+  function syncLogoMode(which) {
+    var b = botOf(which) || { id: which, label: which, tile: which + "-tile", initial: String(which).charAt(0) };
+    var tile = document.getElementById(b.tile || which + "-tile");
+    if (!tile) return;
+    ensureLogoStage(tile, b);
+    if (usesLogoTile(which)) {
+      tile.classList.add("logo-mode");
+      tile.hidden = false;
+      tile.classList.add("live");
+      tile.classList.remove("relay");
+    } else {
+      tile.classList.remove("logo-mode");
+    }
+  }
+  function noteBotLevel(which, pk) {
+    if (!relay.levelTarget) relay.levelTarget = {};
+    pk = +pk || 0;
+    if (pk > (relay.levelTarget[which] || 0)) relay.levelTarget[which] = pk;
+  }
+  function botLevel(which) {
+    if (relay.levelLock && relay.levelLock[which] != null) return +relay.levelLock[which];
+    return relay.level && relay.level[which] || 0;
+  }
+  function drawWave(b, level, now) {
+    var tile = document.getElementById(b.tile);
+    if (!tile || !tile.classList.contains("logo-mode")) return;
+    var c = tile.querySelector("canvas.bot-wave");
+    if (!c) return;
+    var dpr = global.devicePixelRatio || 1;
+    var w = Math.max(1, Math.round((c.clientWidth || tile.clientWidth || 160) * dpr));
+    var h = Math.max(1, Math.round((c.clientHeight || tile.clientHeight || 160) * dpr));
+    if (c.width !== w) c.width = w;
+    if (c.height !== h) c.height = h;
+    var ctx = c.getContext("2d");
+    ctx.clearRect(0, 0, w, h);
+    var cx = w / 2, cy = h / 2, min = Math.min(w, h);
+    var r = min * 0.33;
+    var n = 36;
+    var speaking = level > 0.04;
+    var idle = 0.14 + 0.05 * Math.sin(now / 900);
+    ctx.lineCap = "round";
+    for (var i = 0; i < n; i++) {
+      var ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+      var wobble = Math.abs(Math.sin(now / 90 + i * 0.55)) * 0.7 + 0.3;
+      var wob2 = Math.abs(Math.sin(now / 140 + i * 1.27)) * 0.5;
+      var amp = speaking ? (idle * 0.25 + level * (0.55 + 0.75 * wobble + 0.4 * wob2)) : idle * 0.55;
+      if (amp > 1.2) amp = 1.2;
+      var inner = r + 2 * dpr;
+      var len = (min * 0.145) * (0.22 + amp);
+      var x0 = cx + Math.cos(ang) * inner, y0 = cy + Math.sin(ang) * inner;
+      var x1 = cx + Math.cos(ang) * (inner + len), y1 = cy + Math.sin(ang) * (inner + len);
+      ctx.strokeStyle = speaking ? ("rgba(245,208,0," + (0.5 + 0.45 * Math.min(1, amp)).toFixed(3) + ")") : "rgba(245,208,0,0.28)";
+      ctx.lineWidth = Math.max(2, min * 0.018);
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    }
+    if (speaking) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 0.96, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(245,208,0," + (0.16 + 0.4 * Math.min(1, level)).toFixed(3) + ")";
+      ctx.lineWidth = Math.max(2, min * 0.012);
+      ctx.stroke();
+    }
+  }
+  function startLogoAnim() {
+    if (relay.logoAnim) return;
+    relay.logoAnim = true;
+    if (!relay.level) relay.level = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
+    if (!relay.levelTarget) relay.levelTarget = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
+    var last = (global.performance && performance.now()) || Date.now();
+    function tick(now) {
+      var dt = Math.min(0.08, (now - last) / 1000); last = now;
+      BOTS.forEach(function (b) {
+        if (relay.levelLock && relay.levelLock[b.id] != null) {
+          relay.level[b.id] = +relay.levelLock[b.id];
+          relay.levelTarget[b.id] = +relay.levelLock[b.id];
+        } else {
+          var t = relay.levelTarget[b.id] || 0;
+          t *= Math.pow(0.18, dt);
+          if (t < 0.002) t = 0;
+          relay.levelTarget[b.id] = t;
+          var cur = relay.level[b.id] || 0;
+          var g = t > cur ? 0.5 : 0.2;
+          cur += (t - cur) * (1 - Math.pow(1 - g, dt * 60));
+          relay.level[b.id] = cur;
+        }
+        drawWave(b, botLevel(b.id), now);
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  global.BotBarLogoTiles = {
+    setLevel: function (which, v) {
+      if (!relay.levelLock) relay.levelLock = {};
+      if (!relay.levelTarget) relay.levelTarget = {};
+      if (!relay.level) relay.level = {};
+      if (v == null || v === false) { delete relay.levelLock[which]; return; }
+      v = Math.max(0, Math.min(1, +v));
+      relay.levelLock[which] = v;
+      relay.levelTarget[which] = v;
+      relay.level[which] = v;
+    },
+    setCaption: function (which, text) { setCaption(which, text); },
+    sync: function (which) { if (which) syncLogoMode(which); else BOTS.forEach(function (b) { syncLogoMode(b.id); }); }
+  };
+
+
   function hasLive(stream) {
     return !!(stream && stream.getTracks && stream.getTracks().some(function (t) { return t.readyState === "live"; }));
   }
@@ -76,6 +244,7 @@
        (1 s check below). The PeerJS sync's playing:false / disconnect must not hide it,
        or the two layers fight and the frame flickers. */
     var liveId = (tile && tile.id || "").replace(/-tile$/, "");
+    if (usesLogoTile(liveId)) { syncLogoMode(liveId); return; }
     if (relayLive(liveId)) return;
     if (on && hasLive(vid && vid.srcObject) && vid.videoWidth > 0) {
       tile.hidden = false;
@@ -200,6 +369,7 @@
   function relayLive(which) { return Date.now() - relay.last[which] < 5000; }
   var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   relay.played = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.peak = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
+    relay.level = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.levelTarget = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.levelLock = {};
   function audioCtx(gesture) {
     if (!relay.ac && IOS && !gesture) return null; /* iPhone: build it inside the tap so the playback session applies */
     if (!relay.ac) {
@@ -300,6 +470,7 @@
     return c;
   }
   function relayFrame(which, buf) {
+    if (usesLogoTile(which)) { syncLogoMode(which); return; } /* no scraped window crops on logo tiles */
     var c = relayCanvas(which); if (!c) return;
     var blob = new Blob([buf], { type: "image/jpeg" });
     var draw = function (img) {
@@ -332,6 +503,7 @@
     if (pk > 0.02 && t + b.duration > relay.botLoudUntil) relay.botLoudUntil = t + b.duration; /* for the mic echo gate */
     if (pk > 0.02) relay.botPeak = Math.max(pk, (relay.botPeak || 0) * 0.85);
     else relay.botPeak = (relay.botPeak || 0) * 0.92;
+    noteBotLevel(which, pk);
   }
   /* ---- Website mic -> bots (KloudyBar Website mode) ----
      No on-page mic button. The site follows KloudyBar: web_io (Website) plus mic_on.
@@ -478,6 +650,7 @@
   setInterval(function () {
     botIds().forEach(function (w) {
       var tile = document.getElementById(w + "-tile");
+      if (tile && usesLogoTile(w)) { syncLogoMode(w); return; }
       if (tile && tile.classList.contains("relay") && !relayLive(w)) {
         tile.classList.remove("relay");
         var v = document.getElementById(w + "-video");
@@ -527,6 +700,17 @@
       else if (aco) keepAlive();
     }
     micChip();
+    try {
+      var bots = (st && st.bots) || (st && st.bridge && st.bridge.bots) || (st && st.state && st.state.bots) || {};
+      BOTS.forEach(function (b) {
+        var info = bots[b.id] || {};
+        if (typeof info.voice_level === "number") noteBotLevel(b.id, info.voice_level);
+        else if (typeof info.level === "number") noteBotLevel(b.id, info.level);
+        var cap = info.caption || info.transcript || info.speech || info.last_text || "";
+        if (cap) setCaption(b.id, cap);
+        syncLogoMode(b.id);
+      });
+    } catch (e2) {}
     var p = st && st.state && st.state.page;
     if (!p || p === lastRemotePage) return;
     lastRemotePage = p;
@@ -588,6 +772,8 @@
   ready(function () {
     loadCss();
     ensureTiles();
+    BOTS.forEach(function (b) { syncLogoMode(b.id); });
+    startLogoAnim();
     installFeeds();
     startRelay();
     /* Offer the one tap up front (not only once a bot is already talking), so the page is
@@ -598,7 +784,7 @@
     setInterval(function () {
       var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
       var ac = relay.ac, k = relay.keepEl;
-      try { ws.send(JSON.stringify({ type: "diag", v: "kbar6", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
+      try { ws.send(JSON.stringify({ type: "diag", v: "kbar7", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
         t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
         played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,

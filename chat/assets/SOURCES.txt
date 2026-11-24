@@ -1,0 +1,20 @@
+Official logo files used by the /chat logo tiles (fetched 2026-11-24).
+
+Grok
+  grok-logo.svg     Official Grok logo mark. Paths copied from the inline SVG logo
+                    on https://grok.com/ (the two path elements with id="mark").
+  grok-wordmark.svg Official Grok wordmark, same grok.com inline SVG (all letter
+                    paths plus the mark).
+  grok-icon.png     Official 512x512 app icon from https://grok.com/icon-512x512.png
+                    (same mark on a square field).
+
+Grok Bot
+  grokbot-logo.svg  Official two-eye face mark from https://x.ai/bot
+                    (inline SVG.grok-bot-mark / .grok-bot-mark--fill, idle circular
+                    head). Path data is unchanged. Fills follow official CSS
+                    .grok-bot-mark__head { fill: var(--fg) } and
+                    .grok-bot-mark__eye { fill: var(--bg) }, using a dark head and
+                    light eyes so the mark reads on the tile.
+
+No official public Ara avatar was published on grok.com or the x.ai brand page
+at fetch time, so the Grok tile uses the official Grok logo mark.
