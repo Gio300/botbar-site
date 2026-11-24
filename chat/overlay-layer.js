@@ -330,6 +330,8 @@
     src.start(t); relay.next[which] = t + b.duration;
     var pk = 0; for (var k = 0; k < d.length; k += 8) { var q = d[k] < 0 ? -d[k] : d[k]; if (q > pk) pk = q; }
     if (pk > 0.02 && t + b.duration > relay.botLoudUntil) relay.botLoudUntil = t + b.duration; /* for the mic echo gate */
+    if (pk > 0.02) relay.botPeak = Math.max(pk, (relay.botPeak || 0) * 0.85);
+    else relay.botPeak = (relay.botPeak || 0) * 0.92;
   }
   /* ---- Website mic -> bots (KloudyBar Website mode) ----
      No on-page mic button. The site follows KloudyBar: web_io (Website) plus mic_on.
@@ -359,7 +361,7 @@
     var ac = relay.ac || audioCtx(!IOS || !!relay.unlocked);
     if (!ac) return; /* iPhone: wait for any tap on the page, then unlockAudio will retry */
     relay.micStarting = true;
-    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } }).then(function (stream) {
       if (!micWanted()) { relay.micStarting = false; stream.getTracks().forEach(function (t) { t.stop(); }); micChip(); return; }
       relay.micStarting = false;
       var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
@@ -374,7 +376,11 @@
         var x = e.inputBuffer.getChannelData(0), s2 = 0;
         for (var i = 0; i < x.length; i++) s2 += x[i] * x[i];
         var r = Math.sqrt(s2 / x.length);
-        if (ac.currentTime < relay.botLoudUntil + 0.15 && r < 0.1) { relay.micGated++; return; } /* bot voice playing here: skip echo */
+        /* Never send the page's own bot playback back to the bots (speakers, Zoom share, or a second tab). */
+        if (ac.currentTime < (relay.botLoudUntil || 0) + 0.4) {
+          var floor = Math.max(0.08, (relay.botPeak || 0.04) * 2.2);
+          if (r < floor) { relay.micGated++; return; }
+        }
         var ws = micSocket(); if (!ws || ws.readyState !== 1) return;
         var n = Math.floor(x.length / ratio), out = new Int16Array(n);
         for (var j = 0; j < n; j++) {
