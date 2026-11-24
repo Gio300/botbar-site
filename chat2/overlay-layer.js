@@ -11,7 +11,7 @@
   function botIds() { return BOTS.map(function (b) { return b.id; }); }
 
   function loadCss() {
-    var href = new URL("overlay-layer.css", scriptUrl()).href;
+    var href = new URL("overlay-layer.css?v=kbar2", scriptUrl()).href;
     if (document.querySelector('link[data-botbar-overlay]')) return;
     var l = document.createElement("link");
     l.rel = "stylesheet"; l.href = href; l.setAttribute("data-botbar-overlay", "1");
@@ -313,8 +313,8 @@
   }
   function relayAudio(which, h, buf) {
     if (!webOut()) return; /* remote: no Website / Phone->Web toggle on -> voices are not for the website */
-    var ac = audioCtx(); if (!ac) { soundChip(true); return; }
-    if (ac.state !== "running") { try { ac.resume(); } catch (e) {} soundChip(true); return; }
+    var ac = audioCtx(!IOS || !!relay.unlocked); if (!ac) { soundChip(true); return; }
+    if (ac.state !== "running") { try { ac.resume().then(keepAlive).catch(function () {}); } catch (e) {} soundChip(true); return; }
     soundChip(false);
     var pcm = new Int16Array(buf); if (!pcm.length) return;
     var sr = h.sr || 24000, b = ac.createBuffer(1, pcm.length, sr), d = b.getChannelData(0);
@@ -333,9 +333,9 @@
   }
   /* ---- Website mic -> bots (KloudyBar Website mode) ----
      No on-page mic button. The site follows KloudyBar: web_io (Website) plus mic_on.
-     Browsers still need one user gesture (any tap/click on the page) before
-     getUserMedia and an AudioContext can start; after that, pressing Website
-     on KloudyBar starts site playback and the site mic with no site button. */
+     On desktop Chrome, Website mode starts getUserMedia and the AudioContext
+     itself (permission already granted). iPhone still needs one tap on the page
+     so the playback session applies; after that, Website mode runs the mic. */
   function micOn() { var s = relay.status && relay.status.state; return !s || s.mic_on !== false; }
   function micWanted() { return webIn() && micOn(); }
   function routesNow() { var r = relay.status && relay.status.routes; return r || { web_io: true, phone_io: false, phone_web: true }; }
@@ -356,7 +356,7 @@
 
   function startWebMic() {
     if (!micWanted() || relay.mic || relay.micStarting || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-    var ac = relay.ac || audioCtx(!!relay.unlocked);
+    var ac = relay.ac || audioCtx(!IOS || !!relay.unlocked);
     if (!ac) return; /* iPhone: wait for any tap on the page, then unlockAudio will retry */
     relay.micStarting = true;
     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
@@ -366,9 +366,11 @@
       mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
       var ratio = ac.sampleRate / 24000;
       relay.mic = { stream: stream, proc: proc, src: srcN, ws: null };
+      micSocket(); /* open /webmic immediately so Website mode is live without waiting for Play */
+      try { if (ac.state !== "running") ac.resume().then(keepAlive).catch(function () {}); else keepAlive(); } catch (e) {}
       proc.onaudioprocess = function (e) {
         var st = relay.status && relay.status.state;
-        if (!relay.mic || !micWanted() || !(st && st.playing)) return;
+        if (!relay.mic || !micWanted()) return; /* Website mode (web_io) is enough; do not wait for Play */
         var x = e.inputBuffer.getChannelData(0), s2 = 0;
         for (var i = 0; i < x.length; i++) s2 += x[i] * x[i];
         var r = Math.sqrt(s2 / x.length);
@@ -411,10 +413,24 @@
       }
     } catch (e) {}
     if (micWanted()) {
-      if (relay.ac && relay.ac.state === "running") startWebMic();
+      /* Desktop: Website mode itself starts the site mic (permission already granted needs no tap).
+         iPhone still needs one page tap so unlockAudio can build the AudioContext. */
+      var ac = relay.ac || audioCtx(!IOS || !!relay.unlocked);
+      if (ac) {
+        var go = function () { if (micWanted()) startWebMic(); keepAlive(); };
+        if (ac.state === "running") go();
+        else { try { ac.resume().then(go).catch(function () { go(); }); } catch (e) { go(); } }
+      }
     } else if (relay.mic || relay.micStarting) {
       relay.micStarting = false;
       stopWebMic();
+    }
+    /* When Website / Phone→Web is on, keep trying to run the AudioContext so bot voices
+       play on the page (and in a Zoom share of this tab) without a leftover sound chip. */
+    if (webOut()) {
+      var aco = relay.ac || audioCtx(!IOS || !!relay.unlocked);
+      if (aco && aco.state !== "running") { try { aco.resume().then(keepAlive).catch(function () {}); } catch (e) {} }
+      else if (aco) keepAlive();
     }
     micChip();
     var p = st && st.state && st.state.page;
