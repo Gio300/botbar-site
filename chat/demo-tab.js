@@ -5,7 +5,7 @@
   global.__BOTBAR_DEMO_TAB__ = true;
 
   var BIN = "demo328.bin?v=328e202611230904";
-  var OPEN_BIN = "demo328-open.bin?v=kbar8";
+  var OPEN_BIN = "demo328-open.bin?v=kbar11";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
   var ENABLED_KEY = "botbar.demo328.enabled";
@@ -541,15 +541,17 @@
     watchBots(true);
     overlay.hidden = false;
     applyShell();
-    tab.setAttribute("aria-label", "Close 328 demo");
-    var boot = new Function(payload.player + "\n;return (typeof bb328Boot===\"function\")?bb328Boot:null;")();
-    payload.player = "";
+    if (tab) tab.setAttribute("aria-label", "Close 328 demo");
+    /* Do not wipe lastPayload: a second KloudyBar show reused the emptied pack and opened a black, empty phone. */
+    var player = payload && payload.player;
+    var boot = null;
+    try { boot = new Function(player + "\n;return (typeof bb328Boot===\"function\")?bb328Boot:null;")(); }
+    catch (e) { try { console.warn("BotBar emulator player failed", e); } catch (e2) {} }
     if (typeof boot === "function") {
       session = boot(mount, { steps: payload.steps, screens: payload.screens, images: payload.images, icons: payload.icons || {} });
+    } else {
+      try { console.warn("BotBar emulator pack had no player"); } catch (e3) {}
     }
-    payload.steps = null;
-    payload.screens = null;
-    payload.icons = null;
     syncGuards();
   }
 
