@@ -456,7 +456,12 @@
      play like a video does (also what a Zoom/screen-share of this tab picks up). */
   var SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
   function playbackSession() {
-    try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch (e) {}
+    try {
+      if (navigator.audioSession) {
+        var want = (micWanted() || relay.mic || relay.heldStream || relay.micStarting) ? "play-and-record" : "playback";
+        if (navigator.audioSession.type !== want) navigator.audioSession.type = want;
+      }
+    } catch (e) {}
     try {
       if (!relay.keepEl) {
         var a = document.createElement("audio");
@@ -469,6 +474,9 @@
   }
   function unlockAudio(ev) {
     var gesture = !!(ev && ev.type && ev.type !== "pageshow" && ev.type !== "visibilitychange");
+    /* While the mic prompt is up, this capture listener must not create/resume AudioContext
+       or set audioSession to playback before the prompt starts getUserMedia. */
+    if (relay.micPrompt && gesture) return;
     if (gesture) playbackSession();
     var ac = audioCtx(gesture);
     if (!ac) return;
@@ -589,7 +597,7 @@
       "#bb-mic-prompt, #bb-mic-prompt *{pointer-events:auto !important}" +
       "#bb-mic-prompt .bb-mic-card{margin:24px;padding:28px 24px;max-width:22rem;border-radius:20px;background:#11181c;color:#f4f1e8;text-align:center;box-shadow:0 16px 60px #000c;border:1px solid rgba(255,255,255,.14);font:700 22px/1.25 Arial,Helvetica,sans-serif}" +
       "#bb-mic-prompt .bb-mic-card span{display:block;margin-top:12px;font:500 15px/1.45 Arial,Helvetica,sans-serif;color:#c9d4d8}" +
-      "#bb-mic-prompt .bb-mic-err{display:block;margin-top:14px;font:600 14px/1.4 Arial,Helvetica,sans-serif;color:#ffb4b4}";
+      "#bb-mic-prompt .bb-mic-err{display:block;margin-top:14px;font:600 13px/1.4 Arial,Helvetica,sans-serif;color:#ffb4b4;white-space:pre-wrap;word-break:break-word}";
     (document.head || document.documentElement).appendChild(s);
   }
   function micPromptErrEl() {
@@ -632,11 +640,10 @@
         relay.micGestureAt = Date.now();
         relay.unlocked = true;
         relay.micErr = null;
+        relay.micErrMsg = null;
         var err = micPromptErrEl(); if (err) err.textContent = "";
-        try { playbackSession(); } catch (e1) {}
-        var ac = audioCtx(true);
-        if (ac && ac.state !== "running") { try { ac.resume(); } catch (e2) {} }
-        startWebMic(true); /* getUserMedia is invoked directly in this handler */
+        /* getUserMedia first, in this gesture. AudioContext resume happens inside startWebMic after GUM starts. */
+        startWebMic(true);
       }
       el.addEventListener("click", tap, true);
       el.addEventListener("touchend", tap, true);
@@ -660,7 +667,7 @@
 
   function attachMic(stream) {
     var ac = relay.ac || audioCtx(true);
-    if (!ac) { showMicPrompt(true); return; }
+    if (!ac) { reportMicError({ name: "InvalidStateError", message: "AudioContext could not be created" }, "attachMic"); return; }
     if (relay.mic) { micSocket(); showMicPrompt(false); return; }
     var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
     mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
@@ -691,6 +698,62 @@
     showMicPrompt(false);
     micChip();
   }
+  function inIframe() {
+    try { return global !== global.top; } catch (e) { return true; }
+  }
+  function formatMicErr(err, fallbackName) {
+    var name = (err && err.name) || fallbackName || "";
+    var msg = "";
+    if (err) {
+      if (err.message) msg = String(err.message);
+      else if (typeof err === "string") msg = err;
+    }
+    if (!name && !navigator.mediaDevices) name = "MissingMediaDevices";
+    if (!name && !msg) name = "UnknownError";
+    var line = name ? (msg && msg.indexOf(name) === 0 ? msg : (name + (msg ? ": " + msg : ""))) : (msg || "unknown error");
+    return { name: name, message: msg, line: line };
+  }
+  function iosAllowSteps() {
+    if (/CriOS/.test(navigator.userAgent || "")) {
+      return "In Chrome on iPhone: open the Settings app, tap Chrome, turn on Microphone, then return here and tap again.";
+    }
+    return "In Safari: tap the aA button in the address bar, then Website Settings, Microphone, Allow. Return here and tap again.";
+  }
+  function postMicDiag(extra) {
+    var ac = relay.ac;
+    var payload = {
+      type: "diag", v: "kbar9", ev: "mic", ios: IOS,
+      micErr: relay.micErr || null, micErrMsg: relay.micErrMsg || null, micKind: relay.micErrKind || null,
+      mic: relay.mic ? "on" : "off", micPrompt: !!relay.micPrompt,
+      ac: ac ? ac.state : "none", sess: (navigator.audioSession && navigator.audioSession.type) || "n/a",
+      framed: inIframe(), gum: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+      held: !!liveHeld(), webIn: webIn()
+    };
+    if (extra) {
+      for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) payload[k] = extra[k];
+    }
+    var ws = relay.ws;
+    if (ws && ws.readyState === 1) {
+      try { ws.send(JSON.stringify(payload)); } catch (e) {}
+    } else {
+      relay.pendingMicDiag = payload;
+    }
+  }
+  function reportMicError(err, kind, fallbackName) {
+    var info = formatMicErr(err, fallbackName);
+    relay.micErr = info.name || info.line;
+    relay.micErrMsg = info.message || "";
+    relay.micErrKind = kind || "getUserMedia";
+    var help = "Tap to try again.";
+    var name = info.name;
+    if (name === "NotAllowedError" || name === "PermissionDeniedError") help = IOS ? iosAllowSteps() : "Allow the microphone for this site, then tap again.";
+    else if (name === "NotFoundError") help = "No microphone was found on this device.";
+    else if (name === "OverconstrainedError") help = "This browser rejected the mic settings. Tap to try again.";
+    else if (name === "SecurityError") help = "This page is not allowed to use the microphone.";
+    else if (name === "MissingMediaDevices") help = "This browser cannot use the microphone (navigator.mediaDevices is missing).";
+    showMicDenied(info.line + "\n" + help);
+    postMicDiag();
+  }
   function startWebMic(fromGesture) {
     if (!micWanted() || relay.mic) return;
     if (liveHeld()) { attachMic(liveHeld()); return; }
@@ -698,38 +761,44 @@
     if (relay.micStarting && relay.micStartAt && Date.now() - relay.micStartAt < 2000 && !fromGesture) return;
     if (IOS && !fromGesture) { showMicPrompt(true); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showMicDenied("This browser cannot use the microphone.");
+      reportMicError({ name: "MissingMediaDevices", message: navigator.mediaDevices ? "navigator.mediaDevices.getUserMedia is missing" : "navigator.mediaDevices is missing" }, "mediaDevices");
       return;
     }
-    var ac = relay.ac || audioCtx(!!fromGesture || !IOS || !!relay.unlocked);
-    /* Call getUserMedia now, in this turn — do not wait on ac.resume(). */
+    /* Call getUserMedia now, in this turn, with plain {audio:true}. iOS rejects exact sampleRate/channelCount and some AEC constraints. Do not wait on ac.resume(). */
     relay.micStarting = true;
     relay.micStartAt = Date.now();
     relay.micErr = null;
+    relay.micErrMsg = null;
     var p;
     try {
-      p = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+      p = navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
       relay.micStarting = false;
-      showMicDenied((err && (err.message || err.name)) || "Could not open the mic. Tap to try again.");
+      reportMicError(err, "getUserMedia-sync");
       return;
+    }
+    /* Same gesture, AFTER getUserMedia has been started: audio session + resume AudioContext. */
+    try { if (navigator.audioSession) navigator.audioSession.type = "play-and-record"; } catch (eSess) {}
+    try { playbackSession(); } catch (ePlay) {}
+    var ac = audioCtx(!!fromGesture || !IOS || !!relay.unlocked);
+    if (ac && ac.state !== "running") {
+      try { var rp = ac.resume(); if (rp && rp.catch) rp.catch(function () {}); } catch (eRes) {}
     }
     p.then(function (stream) {
       relay.micStarting = false;
       relay.heldStream = stream;
+      try {
+        var track = stream.getAudioTracks && stream.getAudioTracks()[0];
+        if (track && track.applyConstraints) {
+          track.applyConstraints({ echoCancellation: true, noiseSuppression: true, autoGainControl: true }).catch(function () {});
+        }
+      } catch (eCon) {}
       if (!micWanted()) { showMicPrompt(false); return; }
-      attachMic(stream);
+      try { attachMic(stream); }
+      catch (err) { reportMicError(err, "attachMic"); }
     }).catch(function (err) {
       relay.micStarting = false;
-      var name = (err && err.name) || "";
-      relay.micErr = name || ((err && err.message) || "denied");
-      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-        showMicDenied("Mic access was denied. Allow the microphone for this site, then tap again.");
-      } else if (name === "NotFoundError") {
-        showMicDenied("No microphone was found on this device.");
-      } else {
-        showMicDenied("Could not open the mic. Tap to try again.");
-      }
+      reportMicError(err, "getUserMedia");
     });
   }
   function stopWebMic(forget) {
@@ -847,6 +916,12 @@
       if (!cfg || !cfg.ws) { setTimeout(startRelay, 15000); return; }
       relay.wsUrl = cfg.ws;
       var ws = new WebSocket(cfg.ws); ws.binaryType = "arraybuffer"; relay.ws = ws;
+      ws.onopen = function () {
+        if (relay.pendingMicDiag) {
+          try { ws.send(JSON.stringify(relay.pendingMicDiag)); } catch (e) {}
+          relay.pendingMicDiag = null;
+        }
+      };
       var hdr = null;
       ws.onmessage = function (ev) {
         if (typeof ev.data === "string") {
@@ -886,12 +961,15 @@
     setInterval(function () {
       var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
       var ac = relay.ac, k = relay.keepEl;
-      try { ws.send(JSON.stringify({ type: "diag", v: "kbar8", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
+      try { ws.send(JSON.stringify({ type: "diag", v: "kbar9", ev: "tick", ios: IOS,
+        micErr: relay.micErr || null, micErrMsg: relay.micErrMsg || null, micKind: relay.micErrKind || null,
+        mic: relay.mic ? "on" : "off", micPrompt: !!relay.micPrompt, held: !!liveHeld(), webIn: webIn(),
+        ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
         t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
         played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,
-        under: relay.under, skips: relay.skips, stalls: relay.stalls, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut(),
-        micPrompt: !!relay.micPrompt, micErr: relay.micErr || null, held: !!liveHeld(), webIn: webIn() })); } catch (e) {}
+        under: relay.under, skips: relay.skips, stalls: relay.stalls, micSent: relay.micSent, micGated: relay.micGated, out: webOut(),
+        framed: inIframe() })); } catch (e) {}
       relay.played = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.peak = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
     }, 5000);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
