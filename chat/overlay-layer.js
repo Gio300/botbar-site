@@ -11,7 +11,7 @@
   function botIds() { return BOTS.map(function (b) { return b.id; }); }
 
   function loadCss() {
-    var href = new URL("overlay-layer.css", scriptUrl()).href;
+    var href = new URL("overlay-layer.css?v=kbar2", scriptUrl()).href;
     if (document.querySelector('link[data-botbar-overlay]')) return;
     var l = document.createElement("link");
     l.rel = "stylesheet"; l.href = href; l.setAttribute("data-botbar-overlay", "1");
