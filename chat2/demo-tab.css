@@ -556,3 +556,6 @@ html.bb328-open #bb328-switch {
   pointer-events: none;
 }
 .bb328-toast[hidden] { display: none !important; }
+
+/* kbar: hide site emulator switch — KloudyBar controls it */
+#bb328-switch { display: none !important; }

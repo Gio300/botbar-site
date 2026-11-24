@@ -107,14 +107,11 @@
           try { vid.srcObject.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
         }
         vid.srcObject = stream || null;
-        vid.muted = false;
+        vid.muted = true; /* bot voices play once, via the feed PCM mixer — never from the tile <video> */
         var showIt = function () { setVisible(tile, vid, true); };
         vid.onloadedmetadata = showIt;
         vid.onplaying = showIt;
-        if (vid.play) vid.play().catch(function () {
-          vid.muted = true;
-          vid.play().then(function () { vid.muted = false; }).catch(function () {});
-        });
+        if (vid.play) vid.play().catch(function () {});
         watch(which, stream);
       },
       disconnect: function (which) {
@@ -215,16 +212,12 @@
      timer so a screen-share of /chat can hear bots after one tap (or a prior gesture). A silent
      keep-alive holds the AudioContext open so Chrome does not suspend it mid-share. */
   function soundChip(show) {
+    /* KloudyBar owns start/stop. No on-page sound button. Hide any leftover chip. */
     var el = document.getElementById("bb-sound-chip");
-    if (!el && show) {
-      el = document.createElement("button"); el.id = "bb-sound-chip"; el.type = "button";
-      el.textContent = "\uD83D\uDD0A Tap for bot sound";
-      el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483647;padding:8px 12px;border:0;border-radius:999px;background:#f5d000;color:#1a1400;font:700 14px Arial,sans-serif;box-shadow:0 2px 10px #0006;cursor:pointer";
-      el.addEventListener("click", function (e) { unlockAudio(e); });
-      (document.body || document.documentElement).appendChild(el);
-    }
-    if (el) el.style.display = show ? "block" : "none";
+    if (el) el.style.display = "none";
+    return;
   }
+
   function keepAlive() {
     var ac = relay.ac; if (!ac || ac.state !== "running" || relay.keep) return;
     try {
@@ -257,6 +250,7 @@
     if (gesture) playbackSession();
     var ac = audioCtx(gesture);
     if (!ac) return;
+    if (gesture) relay.unlocked = true;
     if (gesture && micWanted() && !relay.mic) { var acm = ac; setTimeout(function () { if (acm.state === "running") startWebMic(); else acm.resume().then(startWebMic).catch(function () {}); }, 0); }
     setTimeout(micChip, 300);
     if (gesture && ac.state !== "running") {
@@ -337,36 +331,19 @@
     var pk = 0; for (var k = 0; k < d.length; k += 8) { var q = d[k] < 0 ? -d[k] : d[k]; if (q > pk) pk = q; }
     if (pk > 0.02 && t + b.duration > relay.botLoudUntil) relay.botLoudUntil = t + b.duration; /* for the mic echo gate */
   }
-  /* ---- Website mic -> bots (ROUTES 2026-11-17) ----
-     Only while the remote's Website toggle is on. A page sends its mic only after an explicit tap on the
-     "mic" chip (remembered on that device) or when opened with ?mic=1 (presenter / Zoom PC: the mic is
-     requested right after the "Tap for bot sound" tap). Echo: echoCancellation on, and while this page is
-     playing a bot voice the mic is skipped unless someone talks clearly over it. */
-  var MIC_FLAG = /[?&#]mic=1\b/.test(location.search + location.hash);
-  function micWanted() { if (relay.micOff) return false; /* tapped off: stays off until tapped on (even with ?mic=1) */ try { return MIC_FLAG || global.localStorage.getItem("bbmic") === "1"; } catch (e) { return MIC_FLAG; } }
+  /* ---- Website mic -> bots (KloudyBar Website mode) ----
+     No on-page mic button. The site follows KloudyBar: web_io (Website) plus mic_on.
+     Browsers still need one user gesture (any tap/click on the page) before
+     getUserMedia and an AudioContext can start; after that, pressing Website
+     on KloudyBar starts site playback and the site mic with no site button. */
+  function micOn() { var s = relay.status && relay.status.state; return !s || s.mic_on !== false; }
+  function micWanted() { return webIn() && micOn(); }
   function routesNow() { var r = relay.status && relay.status.routes; return r || { web_io: true, phone_io: false, phone_web: true }; }
   function webIn() { return !!routesNow().web_io; }
   function webOut() { var o = relay.status && relay.status.outputs; return !o || o.website !== false; }
   function micChip() {
     var el = document.getElementById("bb-mic-chip");
-    var unlocked = relay.ac && relay.ac.state === "running";
-    var show = webIn() && (relay.mic ? true : unlocked);
-    if (!el && show) {
-      el = document.createElement("button"); el.id = "bb-mic-chip"; el.type = "button";
-      el.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;padding:8px 12px;border:0;border-radius:999px;font:700 14px Arial,sans-serif;box-shadow:0 2px 10px #0006;cursor:pointer";
-      el.addEventListener("click", function () {
-        if (relay.mic || relay.micStarting) { relay.micOff = true; relay.micStarting = false; stopWebMic(); try { global.localStorage.removeItem("bbmic"); } catch (e) {} }
-        else { relay.micOff = false; try { global.localStorage.setItem("bbmic", "1"); } catch (e) {} startWebMic(); }
-        micChip();
-      });
-      (document.body || document.documentElement).appendChild(el);
-    }
-    if (!el) return;
-    el.style.display = show ? "block" : "none";
-    var on = !!relay.mic;
-    el.textContent = on ? "\uD83C\uDF99\uFE0F Mic ON \u00B7 bots hear you (tap to turn off)" : "\uD83D\uDD07 Mic OFF \u00B7 tap so bots hear you"; el.setAttribute("aria-pressed", on ? "true" : "false");
-    el.style.background = on ? "#1ec98a" : "#2a3d44"; el.style.color = on ? "#04130c" : "#e8f4f6";
-    el.style.outline = on ? "0" : "2px solid #8aa4ab";
+    if (el && el.parentNode) el.parentNode.removeChild(el);
   }
   function micSocket() {
     if (!relay.wsUrl) return null;
@@ -376,12 +353,14 @@
     try { m.ws = new WebSocket(u); m.ws.binaryType = "arraybuffer"; } catch (e) { m.ws = null; }
     return m.ws;
   }
+
   function startWebMic() {
-    if (relay.mic || relay.micStarting || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-    var ac = relay.ac; if (!ac) return;
+    if (!micWanted() || relay.mic || relay.micStarting || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    var ac = relay.ac || audioCtx(!!relay.unlocked);
+    if (!ac) return; /* iPhone: wait for any tap on the page, then unlockAudio will retry */
     relay.micStarting = true;
     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
-      if (relay.micOff) { relay.micStarting = false; stream.getTracks().forEach(function (t) { t.stop(); }); micChip(); return; } /* tapped off while asking */
+      if (!micWanted()) { relay.micStarting = false; stream.getTracks().forEach(function (t) { t.stop(); }); micChip(); return; }
       relay.micStarting = false;
       var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
       mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
@@ -389,7 +368,7 @@
       relay.mic = { stream: stream, proc: proc, src: srcN, ws: null };
       proc.onaudioprocess = function (e) {
         var st = relay.status && relay.status.state;
-        if (!relay.mic || !webIn() || !(st && st.playing)) return;
+        if (!relay.mic || !micWanted() || !(st && st.playing)) return;
         var x = e.inputBuffer.getChannelData(0), s2 = 0;
         for (var i = 0; i < x.length; i++) s2 += x[i] * x[i];
         var r = Math.sqrt(s2 / x.length);
@@ -425,7 +404,18 @@
   var lastRemotePage = null;
   function relayStatus(st) {
     relay.status = st;
-    if (relay.mic && !webIn()) { /* Website toggle off: keep the stream but send nothing (checked per frame) */ }
+    try {
+      var es = st && st.state;
+      if (es && Object.prototype.hasOwnProperty.call(es, "emulator") && global.BotBarDemo && global.BotBarDemo.setEnabled) {
+        global.BotBarDemo.setEnabled(!!es.emulator, false);
+      }
+    } catch (e) {}
+    if (micWanted()) {
+      if (relay.ac && relay.ac.state === "running") startWebMic();
+    } else if (relay.mic || relay.micStarting) {
+      relay.micStarting = false;
+      stopWebMic();
+    }
     micChip();
     var p = st && st.state && st.state.page;
     if (!p || p === lastRemotePage) return;

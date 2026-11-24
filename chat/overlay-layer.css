@@ -38,3 +38,6 @@
 .bot-tile canvas.bot-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; background: #000; }
 .bot-tile.relay canvas.bot-canvas { display: block; }
 .bot-tile.relay video { visibility: hidden; }
+
+/* kbar: no on-page mic/sound chips — KloudyBar owns those controls */
+#bb-mic-chip, #bb-sound-chip { display: none !important; }

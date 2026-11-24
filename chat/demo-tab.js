@@ -203,7 +203,7 @@
       overlay.addEventListener(ev, function (e) { e.preventDefault(); });
     });
 
-    document.body.appendChild(switchEl);
+    /* Emulator show/hide is on KloudyBar only — do not mount a site switch. */
     document.body.appendChild(tab);
     document.body.appendChild(promptEl);
     document.body.appendChild(overlay);
@@ -598,6 +598,11 @@
       mo.observe(pagesRoot, { attributes: true, subtree: true, attributeFilter: ["class"] });
     }
   }
+  global.BotBarDemo = {
+    setEnabled: function (on, persist) { setEnabled(on, persist !== false ? true : false); },
+    isEnabled: function () { return !!enabled; },
+    isOpen: function () { return !!demoOpen; }
+  };
   if (document.body) start();
   else document.addEventListener("DOMContentLoaded", start);
 })(window);
