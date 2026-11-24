@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title></title>
+<style>
+  html,body { margin:0; min-height:100%; background:#0b1114; color:#e8f4f6; font-family:Arial,system-ui,sans-serif; }
+  form { display:none; max-width:420px; margin:0 auto; padding:calc(24px + env(safe-area-inset-top)) 18px 24px; }
+  form.on { display:block; }
+  h1 { font-size:20px; margin:0 0 14px; }
+  label { display:block; font-size:13px; color:#8aa3ab; margin-bottom:12px; }
+  input { width:100%; box-sizing:border-box; margin-top:4px; min-height:48px; border-radius:10px; border:2px solid #2a3d44; background:#0d1518; color:#e8f4f6; font-size:17px; padding:8px 10px; }
+  button { width:100%; min-height:56px; border:0; border-radius:14px; background:#1ec98a; color:#081114; font-size:19px; font-weight:800; }
+  #msg { min-height:20px; margin-top:12px; font-size:14px; color:#e24b4b; }
+</style>
+</head>
+<body>
+<!-- Web backup sign-in only. No show controls live on this public page: the controls are served by Johnny's
+     relay, only while the KloudyBar app has switched Web backup ON, and only after passphrase + remote key. -->
+<form id="f" autocomplete="off">
+  <h1>BotBar web backup</h1>
+  <label>Passphrase<input id="p" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+  <label id="kl">Remote key<input id="k" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+  <button type="submit">Sign in</button>
+  <div id="msg"></div>
+</form>
+<script>
+(function () {
+  var f = document.getElementById("f"), base = null, KEY = "botbarRemoteKey", key = null;
+  try {
+    var hk = new URLSearchParams(location.hash.slice(1)).get("k");
+    if (hk) { localStorage.setItem(KEY, hk); history.replaceState(null, "", location.pathname); }
+    key = localStorage.getItem(KEY);
+  } catch (e) {}
+  if (key) document.getElementById("kl").style.display = "none";
+  function check() {
+    var go = base ? Promise.resolve(base) : fetch("/chat2/feed.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); })
+      .then(function (c) { base = c.ws.replace(/^wss:/, "https:").replace(/^ws:/, "http:").replace(/\/feed$/, ""); return base; });
+    go.then(function (b) { return fetch(b + "/web/state?t=" + Date.now(), { cache: "no-store" }); }).then(function (r) { return r.json(); })
+      .then(function (s) { f.classList.toggle("on", !!s.on); }).catch(function () { f.classList.remove("on"); });
+  }
+  f.onsubmit = function (e) {
+    e.preventDefault();
+    var k = key || document.getElementById("k").value, msg = document.getElementById("msg");
+    msg.textContent = "";
+    fetch(base + "/web/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pass: document.getElementById("p").value, k: k }) })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        if (j.ok) {
+          if (!key) try { localStorage.setItem(KEY, k); } catch (e) {}
+          location.href = base + "/web/ui?t=" + encodeURIComponent(j.ticket);
+        } else msg.textContent = j.error === "too_many" ? "Too many attempts. Try again later." : j.error === "off" ? "" : "Not accepted.";
+        if (j.error === "off") f.classList.remove("on");
+      }).catch(function () { msg.textContent = "Not accepted."; });
+  };
+  check(); setInterval(check, 10000);
+})();
+</script>
+</body>
+</html>
