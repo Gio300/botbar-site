@@ -1,7 +1,7 @@
 (function (global) {
   var CHANNEL = "botbar-chat-uQAb4aRj21Y4V-5aOhY1Cw0JyxXfmWVE";
   var STORAGE_KEY = "botbar-chat-state";
-  var defaultState = { v: 1, page: 1, playing: false, muse: "hold", dots: "hold", reconnect: { muse: 0, dots: 0 }, ts: 0 };
+  var defaultState = { v: 1, page: 1, playing: false, muse: "hold", dots: "hold", grokbot: "hold", grok: "hold", reconnect: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, ts: 0 };
 
   function load() {
     try { return Object.assign({}, defaultState, JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")); }

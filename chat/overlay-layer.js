@@ -1,6 +1,14 @@
 (function (global) {
   if (global.__BOTBAR_OVERLAY_LAYER__) return;
   global.__BOTBAR_OVERLAY_LAYER__ = true;
+  var BOTS = [
+    { id: "muse", label: "Muse", tile: "muse-tile", vid: "muse-video" },
+    { id: "dots", label: "Dots", tile: "dots-tile", vid: "dots-video" },
+    { id: "grokbot", label: "Grok Bot", tile: "grokbot-tile", vid: "grokbot-video" },
+    { id: "grok", label: "Grok", tile: "grok-tile", vid: "grok-video" }
+  ];
+  function botOf(which) { for (var i = 0; i < BOTS.length; i++) if (BOTS[i].id === which) return BOTS[i]; return null; }
+  function botIds() { return BOTS.map(function (b) { return b.id; }); }
 
   function loadCss() {
     var href = new URL("overlay-layer.css", scriptUrl()).href;
@@ -55,8 +63,7 @@
       root.appendChild(el);
       return el;
     }
-    tile("muse-tile", "muse-video", "Muse");
-    tile("dots-tile", "dots-video", "Dots");
+    BOTS.forEach(function (b) { tile(b.tile, b.vid, b.label); });
     return root;
   }
 
@@ -68,7 +75,8 @@
     /* A tile drawn from the relay feed stays up until the feed itself goes stale
        (1 s check below). The PeerJS sync's playing:false / disconnect must not hide it,
        or the two layers fight and the frame flickers. */
-    if (relayLive(tile.id === "muse-tile" ? "muse" : "dots")) return;
+    var liveId = (tile && tile.id || "").replace(/-tile$/, "");
+    if (relayLive(liveId)) return;
     if (on && hasLive(vid && vid.srcObject) && vid.videoWidth > 0) {
       tile.hidden = false;
       tile.classList.add("live");
@@ -81,23 +89,19 @@
     if (!stream || !stream.getTracks) return;
     stream.getTracks().forEach(function (t) {
       t.addEventListener("ended", function () {
-        var v = document.getElementById(which === "muse" ? "muse-video" : "dots-video");
+        var b = botOf(which);
+        var v = document.getElementById(b ? b.vid : which + "-video");
         if (v && v.srcObject === stream && !hasLive(stream) && global.BotBarFeeds) global.BotBarFeeds.disconnect(which);
       });
     });
   }
 
   function installFeeds() {
-    var museTile = document.getElementById("muse-tile");
-    var dotsTile = document.getElementById("dots-tile");
-    var museVid = document.getElementById("muse-video");
-    var dotsVid = document.getElementById("dots-video");
-    if (museVid) museVid.muted = true;
-    if (dotsVid) dotsVid.muted = false; /* show page plays bot audio; first can be muted to help autoplay then unmuted */
     global.BotBarFeeds = {
       connect: function (which, stream) {
-        var vid = which === "muse" ? museVid : dotsVid;
-        var tile = which === "muse" ? museTile : dotsTile;
+        var b = botOf(which);
+        var vid = document.getElementById(b ? b.vid : which + "-video");
+        var tile = document.getElementById(b ? b.tile : which + "-tile");
         if (!vid) return;
         if (vid.srcObject && vid.srcObject !== stream) {
           try { vid.srcObject.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
@@ -114,8 +118,9 @@
         watch(which, stream);
       },
       disconnect: function (which) {
-        var vid = which === "muse" ? document.getElementById("muse-video") : document.getElementById("dots-video");
-        var tile = which === "muse" ? document.getElementById("muse-tile") : document.getElementById("dots-tile");
+        var b = botOf(which);
+        var vid = document.getElementById(b ? b.vid : which + "-video");
+        var tile = document.getElementById(b ? b.tile : which + "-tile");
         if (vid && vid.srcObject) {
           try { vid.srcObject.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
           vid.srcObject = null;
@@ -161,13 +166,12 @@
       global.show.__botbarWrapped = true;
     }
     BotBarChatSync.onMedia(function (which, stream) {
-      if (which === "muse" || which === "dots") BotBarFeeds.connect(which, stream);
+      if (botOf(which)) BotBarFeeds.connect(which, stream);
     });
     BotBarChatSync.subscribe(function (s) {
       if (s.page) goPage(s.page);
       if (!s.playing) {
-        BotBarFeeds.disconnect("muse");
-        BotBarFeeds.disconnect("dots");
+        botIds().forEach(function (w) { BotBarFeeds.disconnect(w); });
       }
     });
     BotBarChatSync.start("show");
@@ -193,12 +197,12 @@
 
   /* ---- Relay feed: frames + voice over a plain WebSocket (works on any network,
      no WebRTC/TURN needed). URL comes from feed.json next to this script. ---- */
-  var relay = { last: { muse: 0, dots: 0 }, ac: null, next: { muse: 0, dots: 0 }, ws: null,
-    under: { muse: 0, dots: 0 }, skips: 0, botLoudUntil: 0, mic: null, micSent: 0, micGated: 0 };
+  var relay = { last: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, ac: null, next: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, ws: null,
+    under: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, skips: 0, botLoudUntil: 0, mic: null, micSent: 0, micGated: 0, micWant: null };
   var JITTER_LEAD = 0.25;
   function relayLive(which) { return Date.now() - relay.last[which] < 5000; }
   var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
+  relay.played = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.peak = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
   function audioCtx(gesture) {
     if (!relay.ac && IOS && !gesture) return null; /* iPhone: build it inside the tap so the playback session applies */
     if (!relay.ac) {
@@ -286,7 +290,7 @@
       relay.stalls++; relay.stall = 0; relay.lastT = null;
       stopWebMic();
       try { ac.close(); } catch (e) {}
-      relay.ac = null; relay.keep = null; relay.next = { muse: 0, dots: 0 }; relay.botLoudUntil = 0;
+      relay.ac = null; relay.keep = null; relay.next = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.botLoudUntil = 0;
       soundChip(true);
     }
   }, 1000);
@@ -362,6 +366,7 @@
     var on = !!relay.mic;
     el.textContent = on ? "\uD83C\uDF99\uFE0F Mic ON \u00B7 bots hear you (tap to turn off)" : "\uD83D\uDD07 Mic OFF \u00B7 tap so bots hear you"; el.setAttribute("aria-pressed", on ? "true" : "false");
     el.style.background = on ? "#1ec98a" : "#2a3d44"; el.style.color = on ? "#04130c" : "#e8f4f6";
+    el.style.outline = on ? "0" : "2px solid #8aa4ab";
   }
   function micSocket() {
     if (!relay.wsUrl) return null;
@@ -402,11 +407,12 @@
     }).catch(function () { relay.micStarting = false; micChip(); });
   }
   function stopWebMic() {
-    var m = relay.mic; relay.mic = null; if (!m) return;
+    var m = relay.mic; relay.mic = null; if (!m) { micChip(); return; }
     try { m.proc.disconnect(); m.src.disconnect(); m.stream.getTracks().forEach(function (t) { t.stop(); }); if (m.ws) m.ws.close(); } catch (e) {}
+    micChip();
   }
   setInterval(function () {
-    ["muse", "dots"].forEach(function (w) {
+    botIds().forEach(function (w) {
       var tile = document.getElementById(w + "-tile");
       if (tile && tile.classList.contains("relay") && !relayLive(w)) {
         tile.classList.remove("relay");
@@ -497,7 +503,7 @@
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
         played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,
         under: relay.under, skips: relay.skips, stalls: relay.stalls, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut() })); } catch (e) {}
-      relay.played = { muse: 0, dots: 0 }; relay.peak = { muse: 0, dots: 0 };
+      relay.played = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.peak = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
     }, 5000);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
   });

@@ -17,6 +17,11 @@
 .bot-tile.live { display: block !important; }
 #muse-tile { left: 2%; }
 #dots-tile { right: 2%; }
+#grokbot-tile { left: calc(2% + min(18vw, 22vh) + 1.2%); }
+#grok-tile { right: calc(2% + min(18vw, 22vh) + 1.2%); }
+#bb-mic-chip { pointer-events: auto; }
+#bb-mic-chip[aria-pressed="true"] { background: #1ec98a !important; color: #04130c !important; }
+#bb-mic-chip[aria-pressed="false"] { background: #2a3d44 !important; color: #e8f4f6 !important; outline: 2px solid #8aa4ab; }
 .bot-tile video {
   width: 100%; height: 100%;
   object-fit: cover; object-position: center center;
