@@ -20,7 +20,7 @@ window.BOTBAR_DEMO_CONFIG = {
     phone: "100dvw",
     height: "100dvh",
     aspect: 9 / 19.5,
-    desktopMin: 1100,
+    desktopMin: 700,
     safeArea: true
   },
   handle: { height: "28px", closeDrag: 56 },

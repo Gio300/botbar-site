@@ -263,10 +263,10 @@ html.bb328-open #bb328-switch {
 #bb328-panel.bb328-fill.is-desktop #bb328-mount {
   position: relative;
   inset: auto;
-  height: min(70dvh, 640px);
-  max-height: 70dvh;
+  height: min(90dvh, 980px);
+  max-height: 90dvh;
   width: auto;
-  max-width: min(100dvw, 340px);
+  max-width: min(94dvw, 460px);
   aspect-ratio: var(--bb328-aspect, 0.461538);
   flex: 0 0 auto;
 }
@@ -560,3 +560,14 @@ html.bb328-open #bb328-switch {
 
 /* kbar: hide site emulator switch — KloudyBar controls it */
 #bb328-switch { display: none !important; }
+
+/* 2026-11-24 Sensai (Johnny): emulator is phone-sized, close to full screen but not full.
+   Narrow screens: small margin around the phone instead of edge to edge. */
+#bb328-panel.bb328-fill.is-phone { background: rgba(5, 7, 10, 0.92); }
+#bb328-panel.bb328-fill.is-phone #bb328-mount {
+  top: calc(env(safe-area-inset-top, 0px) + 3dvh);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 3dvh);
+  left: calc(env(safe-area-inset-left, 0px) + 3dvw);
+  right: calc(env(safe-area-inset-right, 0px) + 3dvw);
+}
+#bb328-panel.bb328-fill.is-phone .bb328-phone { border-radius: 22px !important; overflow: hidden; }
