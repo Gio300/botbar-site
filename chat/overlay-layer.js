@@ -722,7 +722,7 @@
   function postMicDiag(extra) {
     var ac = relay.ac;
     var payload = {
-      type: "diag", v: "kbar9", ev: "mic", ios: IOS,
+      type: "diag", v: "kbar10", ev: "mic", ios: IOS,
       micErr: relay.micErr || null, micErrMsg: relay.micErrMsg || null, micKind: relay.micErrKind || null,
       mic: relay.mic ? "on" : "off", micPrompt: !!relay.micPrompt,
       ac: ac ? ac.state : "none", sess: (navigator.audioSession && navigator.audioSession.type) || "n/a",
@@ -754,6 +754,50 @@
     showMicDenied(info.line + "\n" + help);
     postMicDiag();
   }
+  function prepareMicSession() {
+    /* iOS: Safari rejects getUserMedia with InvalidStateError while the audio session is
+       "playback" or while an AudioContext / <audio> element is playing. Switch to
+       play-and-record and pause playback BEFORE getUserMedia, in this gesture. Do not
+       create a second AudioContext here. */
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = "play-and-record";
+    } catch (e) {}
+    try { if (relay.keepEl && !relay.keepEl.paused) relay.keepEl.pause(); } catch (e2) {}
+    try {
+      var els = document.querySelectorAll("audio, video");
+      for (var i = 0; i < els.length; i++) {
+        try { if (!els[i].paused) els[i].pause(); } catch (e3) {}
+      }
+    } catch (e4) {}
+    try {
+      var ac = relay.ac;
+      if (ac && ac.state === "running") {
+        var sp = ac.suspend();
+        if (sp && sp.catch) sp.catch(function () {});
+      }
+    } catch (e5) {}
+  }
+  function resumeAfterMic() {
+    /* Resume the same context. If it was closed or interrupted, recreate it after capture. */
+    var ac = relay.ac;
+    if (ac && (ac.state === "closed" || ac.state === "interrupted")) {
+      try { ac.close(); } catch (e) {}
+      relay.ac = null;
+      relay.keep = null;
+      ac = null;
+    }
+    if (!relay.ac) ac = audioCtx(true);
+    else ac = relay.ac;
+    if (ac && ac.state !== "running") {
+      try { var rp = ac.resume(); if (rp && rp.catch) rp.catch(function () {}); } catch (e2) {}
+    }
+    try { playbackSession(); } catch (e3) {}
+    try { if (ac && ac.state === "running") keepAlive(); } catch (e4) {}
+    return ac;
+  }
+  function gumPlain() {
+    return navigator.mediaDevices.getUserMedia({ audio: true });
+  }
   function startWebMic(fromGesture) {
     if (!micWanted() || relay.mic) return;
     if (liveHeld()) { attachMic(liveHeld()); return; }
@@ -764,27 +808,13 @@
       reportMicError({ name: "MissingMediaDevices", message: navigator.mediaDevices ? "navigator.mediaDevices.getUserMedia is missing" : "navigator.mediaDevices is missing" }, "mediaDevices");
       return;
     }
-    /* Call getUserMedia now, in this turn, with plain {audio:true}. iOS rejects exact sampleRate/channelCount and some AEC constraints. Do not wait on ac.resume(). */
+    /* play-and-record + pause playback FIRST, then getUserMedia, all inside this gesture. */
+    prepareMicSession();
     relay.micStarting = true;
     relay.micStartAt = Date.now();
     relay.micErr = null;
     relay.micErrMsg = null;
-    var p;
-    try {
-      p = navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (err) {
-      relay.micStarting = false;
-      reportMicError(err, "getUserMedia-sync");
-      return;
-    }
-    /* Same gesture, AFTER getUserMedia has been started: audio session + resume AudioContext. */
-    try { if (navigator.audioSession) navigator.audioSession.type = "play-and-record"; } catch (eSess) {}
-    try { playbackSession(); } catch (ePlay) {}
-    var ac = audioCtx(!!fromGesture || !IOS || !!relay.unlocked);
-    if (ac && ac.state !== "running") {
-      try { var rp = ac.resume(); if (rp && rp.catch) rp.catch(function () {}); } catch (eRes) {}
-    }
-    p.then(function (stream) {
+    function afterStream(stream) {
       relay.micStarting = false;
       relay.heldStream = stream;
       try {
@@ -793,13 +823,57 @@
           track.applyConstraints({ echoCancellation: true, noiseSuppression: true, autoGainControl: true }).catch(function () {});
         }
       } catch (eCon) {}
+      try { resumeAfterMic(); } catch (eRes) {}
       if (!micWanted()) { showMicPrompt(false); return; }
       try { attachMic(stream); }
       catch (err) { reportMicError(err, "attachMic"); }
-    }).catch(function (err) {
+    }
+    function isSessionErr(err) {
+      var name = (err && err.name) || "";
+      var msg = String((err && err.message) || "");
+      return name === "InvalidStateError" || /audio session/i.test(msg);
+    }
+    function failOrRetry(err, retried) {
+      if (!retried && isSessionErr(err)) {
+        /* Retry once, still without setTimeout so we stay as close to the gesture as we can. */
+        prepareMicSession();
+        var p2;
+        try { p2 = gumPlain(); }
+        catch (errSync) {
+          relay.micStarting = false;
+          reportMicError(errSync, "getUserMedia-retry-sync");
+          return;
+        }
+        p2.then(afterStream).catch(function (err2) {
+          relay.micStarting = false;
+          reportMicError(err2, "getUserMedia-retry");
+        });
+        return;
+      }
       relay.micStarting = false;
-      reportMicError(err, "getUserMedia");
-    });
+      reportMicError(err, retried ? "getUserMedia-retry" : "getUserMedia");
+    }
+    var p;
+    try {
+      p = gumPlain();
+    } catch (err) {
+      /* Synchronous throw: set the session again and retry once, still inside the tap. */
+      if (isSessionErr(err)) {
+        prepareMicSession();
+        try { p = gumPlain(); }
+        catch (err2) {
+          relay.micStarting = false;
+          reportMicError(err2, "getUserMedia-sync");
+          return;
+        }
+        p.then(afterStream).catch(function (e) { failOrRetry(e, true); });
+        return;
+      }
+      relay.micStarting = false;
+      reportMicError(err, "getUserMedia-sync");
+      return;
+    }
+    p.then(afterStream).catch(function (e) { failOrRetry(e, false); });
   }
   function stopWebMic(forget) {
     var m = relay.mic; relay.mic = null;
@@ -961,7 +1035,7 @@
     setInterval(function () {
       var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
       var ac = relay.ac, k = relay.keepEl;
-      try { ws.send(JSON.stringify({ type: "diag", v: "kbar9", ev: "tick", ios: IOS,
+      try { ws.send(JSON.stringify({ type: "diag", v: "kbar10", ev: "tick", ios: IOS,
         micErr: relay.micErr || null, micErrMsg: relay.micErrMsg || null, micKind: relay.micErrKind || null,
         mic: relay.mic ? "on" : "off", micPrompt: !!relay.micPrompt, held: !!liveHeld(), webIn: webIn(),
         ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
