@@ -263,9 +263,10 @@ html.bb328-open #bb328-switch {
 #bb328-panel.bb328-fill.is-desktop #bb328-mount {
   position: relative;
   inset: auto;
-  height: 100%;
+  height: min(70dvh, 640px);
+  max-height: 70dvh;
   width: auto;
-  max-width: 100dvw;
+  max-width: min(100dvw, 340px);
   aspect-ratio: var(--bb328-aspect, 0.461538);
   flex: 0 0 auto;
 }

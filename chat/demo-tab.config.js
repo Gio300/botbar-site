@@ -15,7 +15,7 @@ window.BOTBAR_DEMO_CONFIG = {
   overlay: { inset: "3vh 3vw", radius: "24px" },
   muse: { top: "2%", left: "2%", width: "min(22%, 132px)" },
   dots: { top: "2%", right: "2%", width: "min(22%, 132px)" },
-  emulator: { top: "16%", width: "min(78%, 340px)", aspect: 9 / 19.5 },
+  emulator: { top: "16%", width: "min(48%, 240px)", aspect: 9 / 19.5 },
   fullscreen: {
     phone: "100dvw",
     height: "100dvh",

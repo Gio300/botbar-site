@@ -414,8 +414,9 @@
     relay.status = st;
     try {
       var es = st && st.state;
-      if (es && Object.prototype.hasOwnProperty.call(es, "emulator") && global.BotBarDemo && global.BotBarDemo.setEnabled) {
-        global.BotBarDemo.setEnabled(!!es.emulator, false);
+      if (es && Object.prototype.hasOwnProperty.call(es, "emulator") && global.BotBarDemo) {
+        if (global.BotBarDemo.setVisible) global.BotBarDemo.setVisible(!!es.emulator);
+        else if (global.BotBarDemo.setEnabled) global.BotBarDemo.setEnabled(!!es.emulator, false);
       }
     } catch (e) {}
     if (micWanted()) {

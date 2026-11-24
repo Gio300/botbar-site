@@ -448,6 +448,7 @@
       plain = null;
       clearLock();
       closePrompt();
+      lastPayload = payload;
       openDemo(payload);
     } catch (err) {
       shake("Could not open the demo");
@@ -529,7 +530,10 @@
     document.documentElement.classList.toggle("bb328-open", !!demoOpen);
   }
 
+  var lastPayload = null;
+
   function openDemo(payload) {
+    if (payload) lastPayload = payload;
     demoOpen = true;
     if (switchEl) switchEl.hidden = true;
     global.__BOTBAR_DEMO_OPEN__ = true;
@@ -598,8 +602,22 @@
       mo.observe(pagesRoot, { attributes: true, subtree: true, attributeFilter: ["class"] });
     }
   }
+  function setVisible(on) {
+    /* KloudyBar show/hide: no passphrase prompt. Reopen the already-unlocked
+       328 pack if this page has decrypted it once; otherwise just enable. */
+    on = !!on;
+    if (on) {
+      setEnabled(true, false);
+      if (lastPayload && !demoOpen) openDemo(lastPayload);
+    } else {
+      closeDemo();
+      setEnabled(false, false);
+    }
+  }
+
   global.BotBarDemo = {
     setEnabled: function (on, persist) { setEnabled(on, persist !== false ? true : false); },
+    setVisible: function (on) { setVisible(on); },
     isEnabled: function () { return !!enabled; },
     isOpen: function () { return !!demoOpen; }
   };
