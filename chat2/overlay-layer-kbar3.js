@@ -195,7 +195,7 @@
   /* ---- Relay feed: frames + voice over a plain WebSocket (works on any network,
      no WebRTC/TURN needed). URL comes from feed.json next to this script. ---- */
   var relay = { last: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, ac: null, next: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, ws: null,
-    under: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, skips: 0, botLoudUntil: 0, mic: null, micSent: 0, micGated: 0, micWant: null };
+    under: { muse: 0, dots: 0, grokbot: 0, grok: 0 }, skips: 0, botLoudUntil: 0, mic: null, micSent: 0, micGated: 0, micWant: null, heldStream: null, micPrompt: false, micErr: null };
   var JITTER_LEAD = 0.25;
   function relayLive(which) { return Date.now() - relay.last[which] < 5000; }
   var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -251,7 +251,7 @@
     var ac = audioCtx(gesture);
     if (!ac) return;
     if (gesture) relay.unlocked = true;
-    if (gesture && micWanted() && !relay.mic) { var acm = ac; setTimeout(function () { if (acm.state === "running") startWebMic(); else acm.resume().then(startWebMic).catch(function () {}); }, 0); }
+    if (gesture && micWanted() && !relay.mic) startWebMic(true); /* iOS: getUserMedia must run inside the tap, not a timeout */
     setTimeout(micChip, 300);
     if (gesture && ac.state !== "running") {
       /* old WebKit only unlocks if a sound is started inside the tap itself */
@@ -347,6 +347,54 @@
     var el = document.getElementById("bb-mic-chip");
     if (el && el.parentNode) el.parentNode.removeChild(el);
   }
+  function liveHeld() {
+    var s = relay.heldStream;
+    if (!s) return null;
+    var tr = s.getAudioTracks();
+    if (!tr.length || tr[0].readyState !== "live") return null;
+    return s;
+  }
+  function ensureMicPromptStyle() {
+    if (document.getElementById("bb-mic-prompt-css")) return;
+    var s = document.createElement("style");
+    s.id = "bb-mic-prompt-css";
+    s.textContent = "#bb-mic-prompt{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(6,8,12,.82);-webkit-tap-highlight-color:transparent;cursor:pointer}" +
+      "#bb-mic-prompt .bb-mic-card{margin:24px;padding:28px 24px;max-width:22rem;border-radius:20px;background:#11181c;color:#f4f1e8;text-align:center;box-shadow:0 16px 60px #000c;border:1px solid rgba(255,255,255,.14);font:700 22px/1.25 Arial,Helvetica,sans-serif}" +
+      "#bb-mic-prompt .bb-mic-card span{display:block;margin-top:12px;font:500 15px/1.45 Arial,Helvetica,sans-serif;color:#c9d4d8}";
+    (document.head || document.documentElement).appendChild(s);
+  }
+  function showMicPrompt(show) {
+    ensureMicPromptStyle();
+    var el = document.getElementById("bb-mic-prompt");
+    if (!show || !micWanted() || relay.mic) {
+      if (el) el.style.display = "none";
+      relay.micPrompt = false;
+      return;
+    }
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "bb-mic-prompt";
+      el.setAttribute("role", "button");
+      el.tabIndex = 0;
+      el.innerHTML = '<div class="bb-mic-card">Tap to connect mic<span>KloudyBar Website is on. Tap so this device can send its mic to the bots.</span></div>';
+      function tap(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        relay.unlocked = true;
+        try { playbackSession(); } catch (e1) {}
+        var ac = audioCtx(true);
+        if (ac && ac.state !== "running") { try { ac.resume(); } catch (e2) {} }
+        startWebMic(true);
+      }
+      el.addEventListener("pointerdown", tap, true);
+      el.addEventListener("click", tap, true);
+      el.addEventListener("touchend", tap, true);
+      el.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") tap(ev); }, true);
+      (document.body || document.documentElement).appendChild(el);
+    }
+    el.style.display = "flex";
+    relay.micPrompt = true;
+  }
   function micSocket() {
     if (!relay.wsUrl) return null;
     var m = relay.mic; if (!m) return null;
@@ -356,46 +404,75 @@
     return m.ws;
   }
 
-  function startWebMic() {
-    if (!micWanted() || relay.mic || relay.micStarting || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-    var ac = relay.ac || audioCtx(!IOS || !!relay.unlocked);
-    if (!ac) return; /* iPhone: wait for any tap on the page, then unlockAudio will retry */
-    relay.micStarting = true;
-    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } }).then(function (stream) {
-      if (!micWanted()) { relay.micStarting = false; stream.getTracks().forEach(function (t) { t.stop(); }); micChip(); return; }
-      relay.micStarting = false;
-      var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
-      mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
-      var ratio = ac.sampleRate / 24000;
-      relay.mic = { stream: stream, proc: proc, src: srcN, ws: null };
-      micSocket(); /* open /webmic immediately so Website mode is live without waiting for Play */
-      try { if (ac.state !== "running") ac.resume().then(keepAlive).catch(function () {}); else keepAlive(); } catch (e) {}
-      proc.onaudioprocess = function (e) {
-        var st = relay.status && relay.status.state;
-        if (!relay.mic || !micWanted()) return; /* Website mode (web_io) is enough; do not wait for Play */
-        var x = e.inputBuffer.getChannelData(0), s2 = 0;
-        for (var i = 0; i < x.length; i++) s2 += x[i] * x[i];
-        var r = Math.sqrt(s2 / x.length);
-        /* Never send the page's own bot playback back to the bots (speakers, Zoom share, or a second tab). */
-        if (ac.currentTime < (relay.botLoudUntil || 0) + 0.4) {
-          var floor = Math.max(0.08, (relay.botPeak || 0.04) * 2.2);
-          if (r < floor) { relay.micGated++; return; }
-        }
-        var ws = micSocket(); if (!ws || ws.readyState !== 1) return;
-        var n = Math.floor(x.length / ratio), out = new Int16Array(n);
-        for (var j = 0; j < n; j++) {
-          var a0 = Math.floor(j * ratio), a1 = Math.max(a0 + 1, Math.floor((j + 1) * ratio)), acc = 0;
-          for (var q = a0; q < a1 && q < x.length; q++) acc += x[q];
-          var v = acc / (a1 - a0); out[j] = Math.max(-1, Math.min(1, v)) * 32767;
-        }
-        try { ws.send(out.buffer); relay.micSent++; } catch (err) {}
-      };
-      micChip();
-    }).catch(function () { relay.micStarting = false; micChip(); });
+  function attachMic(stream) {
+    var ac = relay.ac || audioCtx(true);
+    if (!ac) { showMicPrompt(true); return; }
+    if (relay.mic) { micSocket(); showMicPrompt(false); return; }
+    var srcN = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(2048, 1, 1), mute = ac.createGain();
+    mute.gain.value = 0; srcN.connect(proc); proc.connect(mute); mute.connect(ac.destination); /* never played locally */
+    var ratio = ac.sampleRate / 24000;
+    relay.mic = { stream: stream, proc: proc, src: srcN, ws: null };
+    relay.heldStream = stream;
+    micSocket(); /* open /webmic immediately so Website mode is live without waiting for Play */
+    try { if (ac.state !== "running") ac.resume().then(keepAlive).catch(function () {}); else keepAlive(); } catch (e) {}
+    proc.onaudioprocess = function (e) {
+      if (!relay.mic || !micWanted()) return; /* Website mode (web_io) is enough; do not wait for Play */
+      var x = e.inputBuffer.getChannelData(0), s2 = 0;
+      for (var i = 0; i < x.length; i++) s2 += x[i] * x[i];
+      var r = Math.sqrt(s2 / x.length);
+      /* Never send the page's own bot playback back to the bots. Only gate while a bot is actually playing; a quiet phone mic must still pass. */
+      if (relay.botLoudUntil && ac.currentTime < relay.botLoudUntil + 0.25) {
+        var floor = Math.max(0.02, (relay.botPeak || 0.02) * 1.2);
+        if (r < floor) { relay.micGated++; return; }
+      }
+      var ws = micSocket(); if (!ws || ws.readyState !== 1) return;
+      var n = Math.floor(x.length / ratio), out = new Int16Array(n);
+      for (var j = 0; j < n; j++) {
+        var a0 = Math.floor(j * ratio), a1 = Math.max(a0 + 1, Math.floor((j + 1) * ratio)), acc = 0;
+        for (var q = a0; q < a1 && q < x.length; q++) acc += x[q];
+        var v = acc / (a1 - a0); out[j] = Math.max(-1, Math.min(1, v)) * 32767;
+      }
+      try { ws.send(out.buffer); relay.micSent++; } catch (err) {}
+    };
+    showMicPrompt(false);
+    micChip();
   }
-  function stopWebMic() {
-    var m = relay.mic; relay.mic = null; if (!m) { micChip(); return; }
-    try { m.proc.disconnect(); m.src.disconnect(); m.stream.getTracks().forEach(function (t) { t.stop(); }); if (m.ws) m.ws.close(); } catch (e) {}
+  function startWebMic(fromGesture) {
+    if (!micWanted() || relay.mic || relay.micStarting) return;
+    if (liveHeld()) { attachMic(liveHeld()); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showMicPrompt(true); return; }
+    var ac = relay.ac || audioCtx(!!fromGesture || !IOS || !!relay.unlocked);
+    if (!ac) { showMicPrompt(true); return; }
+    /* iPhone (and iOS Chrome): getUserMedia from a KloudyBar /feed push is not a user gesture and is blocked. Ping this device with a visible tap. */
+    if (IOS && !fromGesture) { showMicPrompt(true); return; }
+    relay.micStarting = true;
+    relay.micErr = null;
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } }).then(function (stream) {
+      relay.micStarting = false;
+      relay.heldStream = stream;
+      if (!micWanted()) { showMicPrompt(false); return; }
+      attachMic(stream);
+    }).catch(function (err) {
+      relay.micStarting = false;
+      relay.micErr = (err && (err.name || err.message)) || "denied";
+      showMicPrompt(true);
+    });
+  }
+  function stopWebMic(forget) {
+    var m = relay.mic; relay.mic = null;
+    if (m) {
+      try { m.proc.disconnect(); m.src.disconnect(); if (m.ws) m.ws.close(); } catch (e) {}
+      if (forget) {
+        try { (m.stream || relay.heldStream).getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+        relay.heldStream = null;
+      } else {
+        relay.heldStream = m.stream || relay.heldStream;
+      }
+    } else if (forget && relay.heldStream) {
+      try { relay.heldStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+      relay.heldStream = null;
+    }
+    if (!micWanted()) showMicPrompt(false);
     micChip();
   }
   setInterval(function () {
@@ -420,17 +497,27 @@
       }
     } catch (e) {}
     if (micWanted()) {
-      /* Desktop: Website mode itself starts the site mic (permission already granted needs no tap).
-         iPhone still needs one page tap so unlockAudio can build the AudioContext. */
-      var ac = relay.ac || audioCtx(!IOS || !!relay.unlocked);
-      if (ac) {
-        var go = function () { if (micWanted()) startWebMic(); keepAlive(); };
-        if (ac.state === "running") go();
-        else { try { ac.resume().then(go).catch(function () { go(); }); } catch (e) { go(); } }
+      /* KloudyBar Website ping: every open /chat device must start (or un-gate) its mic.
+         If this device already granted a stream, just send. Otherwise show Tap to connect mic. */
+      if (liveHeld() || relay.mic) {
+        var ac = relay.ac || audioCtx(!IOS || !!relay.unlocked);
+        if (ac) {
+          var go = function () { if (micWanted()) startWebMic(false); keepAlive(); };
+          if (ac.state === "running") go();
+          else { try { ac.resume().then(go).catch(function () { go(); }); } catch (e) { go(); } }
+        } else {
+          showMicPrompt(true);
+        }
+      } else if (IOS) {
+        showMicPrompt(true);
+      } else {
+        var acd = relay.ac || audioCtx(true);
+        if (acd) startWebMic(false);
+        else showMicPrompt(true);
       }
-    } else if (relay.mic || relay.micStarting) {
+    } else if (relay.mic || relay.micStarting || liveHeld()) {
       relay.micStarting = false;
-      stopWebMic();
+      stopWebMic(false); /* keep the granted stream so the next Website press does not need a new permission */
     }
     /* When Website / Phone→Web is on, keep trying to run the AudioContext so bot voices
        play on the page (and in a Zoom share of this tab) without a leftover sound chip. */
@@ -511,11 +598,12 @@
     setInterval(function () {
       var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
       var ac = relay.ac, k = relay.keepEl;
-      try { ws.send(JSON.stringify({ type: "diag", v: "routes1", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
+      try { ws.send(JSON.stringify({ type: "diag", v: "kbar6", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
         t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
         played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,
-        under: relay.under, skips: relay.skips, stalls: relay.stalls, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut() })); } catch (e) {}
+        under: relay.under, skips: relay.skips, stalls: relay.stalls, mic: relay.mic ? "on" : "off", micSent: relay.micSent, micGated: relay.micGated, out: webOut(),
+        micPrompt: !!relay.micPrompt, micErr: relay.micErr || null, held: !!liveHeld(), webIn: webIn() })); } catch (e) {}
       relay.played = { muse: 0, dots: 0, grokbot: 0, grok: 0 }; relay.peak = { muse: 0, dots: 0, grokbot: 0, grok: 0 };
     }, 5000);
     ensureDeps().then(wireSync).catch(function (e) { console.warn("BotBar overlay deps", e); });
