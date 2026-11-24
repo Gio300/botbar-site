@@ -11,7 +11,7 @@
   function botIds() { return BOTS.map(function (b) { return b.id; }); }
 
   function loadCss() {
-    var href = new URL("overlay-layer.css?v=logo1", scriptUrl()).href;
+    var href = new URL("overlay-layer.css?v=logo2", scriptUrl()).href;
     if (document.querySelector('link[data-botbar-overlay]')) return;
     var l = document.createElement("link");
     l.rel = "stylesheet"; l.href = href; l.setAttribute("data-botbar-overlay", "1");
@@ -68,10 +68,24 @@
   }
 
   function preferLogo(b) { return !!(b && b.preferLogo); }
+  function isLogoBot(which) { return preferLogo(botOf(which)); }
+  function statusBots() {
+    var st = relay.status || {};
+    return st.bots || (st.bridge && st.bridge.bots) || (st.state && st.state.bots) || {};
+  }
+  /* KloudyBar button pressed (state=live) or helper reports active. Hidden until then. */
+  function botIsActive(which) {
+    var st = relay.status || {};
+    var state = st.state || {};
+    if (state[which] === "live") return true;
+    var info = statusBots()[which] || {};
+    if (info.status === "active") return true;
+    return false;
+  }
   function usesLogoTile(which) {
     var b = botOf(which);
-    if (!b) return true;
-    if (b.preferLogo) return true;
+    if (isLogoBot(which)) return botIsActive(which);
+    if (!b) return !usableAvatar(which);
     if (b.liveCrop) return false; /* Muse / Dots stay on their live tiles */
     return !usableAvatar(which);
   }
@@ -84,7 +98,7 @@
     return false;
   }
   function assetUrl(name) {
-    return new URL("assets/" + name + "?v=logo1", scriptUrl()).href;
+    return new URL("assets/" + name + "?v=logo2", scriptUrl()).href;
   }
   function ensureLogoStage(tile, b) {
     if (!tile || !b) return null;
@@ -95,9 +109,21 @@
     var wave = document.createElement("canvas");
     wave.className = "bot-wave";
     wave.setAttribute("aria-hidden", "true");
+    var pane = document.createElement("div");
+    pane.className = "bot-logo-pane";
     var face = document.createElement("div");
     face.className = "bot-logo-face";
-    if (b.logo) {
+    if (b.logo && /grokbot/.test(b.logo)) {
+      var holder = document.createElement("div");
+      holder.className = "bot-logo bot-logo-svg";
+      face.appendChild(holder);
+      fetch(assetUrl(b.logo)).then(function (r) { return r.ok ? r.text() : ""; }).then(function (svg) {
+        if (!svg) return;
+        svg = svg.replace(/<svg([^>]*)>/, '<svg$1 class="gb-mark"><g class="gb-spin"><g class="gb-look"><g class="gb-blink">');
+        svg = svg.replace(/<\/svg>/, "</g></g></g></svg>");
+        holder.innerHTML = svg;
+      }).catch(function () {});
+    } else if (b.logo) {
       var img = document.createElement("img");
       img.className = "bot-logo";
       img.alt = b.label || "";
@@ -109,11 +135,12 @@
       mono.textContent = (b.initial || (b.label || "?").charAt(0)).toUpperCase();
       face.appendChild(mono);
     }
+    pane.appendChild(face);
     var cap = document.createElement("div");
     cap.className = "bot-caption";
     cap.hidden = true;
     stage.appendChild(wave);
-    stage.appendChild(face);
+    stage.appendChild(pane);
     stage.appendChild(cap);
     tile.appendChild(stage);
     return stage;
@@ -133,6 +160,18 @@
     var tile = document.getElementById(b.tile || which + "-tile");
     if (!tile) return;
     ensureLogoStage(tile, b);
+    if (isLogoBot(which)) {
+      tile.classList.add("logo-mode");
+      tile.classList.remove("relay");
+      if (botIsActive(which)) {
+        tile.hidden = false;
+        tile.classList.add("live");
+      } else {
+        tile.hidden = true;
+        tile.classList.remove("live");
+      }
+      return;
+    }
     if (usesLogoTile(which)) {
       tile.classList.add("logo-mode");
       tile.hidden = false;
@@ -213,7 +252,19 @@
           cur += (t - cur) * (1 - Math.pow(1 - g, dt * 60));
           relay.level[b.id] = cur;
         }
-        drawWave(b, botLevel(b.id), now);
+        var lvl = botLevel(b.id);
+        if (isLogoBot(b.id) && botIsActive(b.id) && lvl < 0.05) {
+          /* Listening light: a calm pulse on the ring while the bot is ACTIVE and not talking. */
+          lvl = 0.14 + 0.05 * Math.sin(now / 420);
+        }
+        var info = statusBots()[b.id] || {};
+        if (typeof info.hears_level === "number" && info.hears_level > lvl) {
+          lvl = Math.max(lvl, Math.min(0.35, info.hears_level * 2.2));
+        }
+        if (typeof info.voice_level === "number" && info.voice_level > (relay.levelLock && relay.levelLock[b.id] != null ? -1 : lvl)) {
+          if (!(relay.levelLock && relay.levelLock[b.id] != null)) noteBotLevel(b.id, info.voice_level);
+        }
+        drawWave(b, lvl, now);
       });
       requestAnimationFrame(tick);
     }
@@ -244,6 +295,7 @@
        (1 s check below). The PeerJS sync's playing:false / disconnect must not hide it,
        or the two layers fight and the frame flickers. */
     var liveId = (tile && tile.id || "").replace(/-tile$/, "");
+    if (isLogoBot(liveId)) { syncLogoMode(liveId); return; }
     if (usesLogoTile(liveId)) { syncLogoMode(liveId); return; }
     if (relayLive(liveId)) return;
     if (on && hasLive(vid && vid.srcObject) && vid.videoWidth > 0) {
@@ -421,7 +473,10 @@
     var ac = audioCtx(gesture);
     if (!ac) return;
     if (gesture) relay.unlocked = true;
-    if (gesture && micWanted() && !relay.mic) startWebMic(true); /* iOS: getUserMedia must run inside the tap, not a timeout */
+    /* iOS: getUserMedia must run inside touchend/click on the prompt, never from pointerdown. */
+    if (gesture && micWanted() && !relay.mic && !relay.micPrompt && ev && (ev.type === "touchend" || ev.type === "click") && !relay.micStarting) {
+      startWebMic(true);
+    }
     setTimeout(micChip, 300);
     if (gesture && ac.state !== "running") {
       /* old WebKit only unlocks if a sound is started inside the tap itself */
@@ -470,7 +525,7 @@
     return c;
   }
   function relayFrame(which, buf) {
-    if (usesLogoTile(which)) { syncLogoMode(which); return; } /* no scraped window crops on logo tiles */
+    if (isLogoBot(which)) { syncLogoMode(which); return; } /* no scraped window crops on logo tiles */
     var c = relayCanvas(which); if (!c) return;
     var blob = new Blob([buf], { type: "image/jpeg" });
     var draw = function (img) {
@@ -512,7 +567,7 @@
      so the playback session applies; after that, Website mode runs the mic. */
   function micOn() { var s = relay.status && relay.status.state; return !s || s.mic_on !== false; }
   function micWanted() { return webIn() && micOn(); }
-  function routesNow() { var r = relay.status && relay.status.routes; return r || { web_io: true, phone_io: false, phone_web: true }; }
+  function routesNow() { var r = relay.status && relay.status.routes; return r || { web_io: false, phone_io: false, phone_web: false }; }
   function webIn() { return !!routesNow().web_io; }
   function webOut() { var o = relay.status && relay.status.outputs; return !o || o.website !== false; }
   function micChip() {
@@ -530,15 +585,34 @@
     if (document.getElementById("bb-mic-prompt-css")) return;
     var s = document.createElement("style");
     s.id = "bb-mic-prompt-css";
-    s.textContent = "#bb-mic-prompt{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(6,8,12,.82);-webkit-tap-highlight-color:transparent;cursor:pointer}" +
+    s.textContent = "#bb-mic-prompt{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(6,8,12,.82);-webkit-tap-highlight-color:transparent;cursor:pointer;pointer-events:auto;touch-action:manipulation}" +
+      "#bb-mic-prompt, #bb-mic-prompt *{pointer-events:auto !important}" +
       "#bb-mic-prompt .bb-mic-card{margin:24px;padding:28px 24px;max-width:22rem;border-radius:20px;background:#11181c;color:#f4f1e8;text-align:center;box-shadow:0 16px 60px #000c;border:1px solid rgba(255,255,255,.14);font:700 22px/1.25 Arial,Helvetica,sans-serif}" +
-      "#bb-mic-prompt .bb-mic-card span{display:block;margin-top:12px;font:500 15px/1.45 Arial,Helvetica,sans-serif;color:#c9d4d8}";
+      "#bb-mic-prompt .bb-mic-card span{display:block;margin-top:12px;font:500 15px/1.45 Arial,Helvetica,sans-serif;color:#c9d4d8}" +
+      "#bb-mic-prompt .bb-mic-err{display:block;margin-top:14px;font:600 14px/1.4 Arial,Helvetica,sans-serif;color:#ffb4b4}";
     (document.head || document.documentElement).appendChild(s);
+  }
+  function micPromptErrEl() {
+    var el = document.getElementById("bb-mic-prompt");
+    if (!el) return null;
+    var err = el.querySelector(".bb-mic-err");
+    if (!err) {
+      var card = el.querySelector(".bb-mic-card") || el;
+      err = document.createElement("div");
+      err.className = "bb-mic-err";
+      card.appendChild(err);
+    }
+    return err;
+  }
+  function showMicDenied(msg) {
+    showMicPrompt(true);
+    var err = micPromptErrEl();
+    if (err) err.textContent = msg || "Mic access was denied. Allow the microphone for this site, then tap again.";
   }
   function showMicPrompt(show) {
     ensureMicPromptStyle();
     var el = document.getElementById("bb-mic-prompt");
-    if (!show || !micWanted() || relay.mic) {
+    if (!show || (!micWanted() && !relay.micErr) || relay.mic) {
       if (el) el.style.display = "none";
       relay.micPrompt = false;
       return;
@@ -550,21 +624,29 @@
       el.tabIndex = 0;
       el.innerHTML = '<div class="bb-mic-card">Tap to connect mic<span>KloudyBar Website is on. Tap so this device can send its mic to the bots.</span></div>';
       function tap(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
+        /* iOS: getUserMedia must be called synchronously inside touchend/click, not pointerdown. */
+        if (ev && ev.type === "pointerdown") return;
+        if (ev && ev.type === "touchend" && ev.cancelable) ev.preventDefault(); /* prevent the following click so we only fire once */
+        if (ev) ev.stopPropagation();
+        if (relay.micGestureAt && Date.now() - relay.micGestureAt < 700) return;
+        relay.micGestureAt = Date.now();
         relay.unlocked = true;
+        relay.micErr = null;
+        var err = micPromptErrEl(); if (err) err.textContent = "";
         try { playbackSession(); } catch (e1) {}
         var ac = audioCtx(true);
         if (ac && ac.state !== "running") { try { ac.resume(); } catch (e2) {} }
-        startWebMic(true);
+        startWebMic(true); /* getUserMedia is invoked directly in this handler */
       }
-      el.addEventListener("pointerdown", tap, true);
       el.addEventListener("click", tap, true);
       el.addEventListener("touchend", tap, true);
       el.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") tap(ev); }, true);
-      (document.body || document.documentElement).appendChild(el);
     }
+    /* Re-parent to the end of body so nothing (overlay root, leftover emulator layers) can cover it. */
+    (document.body || document.documentElement).appendChild(el);
     el.style.display = "flex";
+    el.style.zIndex = "2147483647";
+    el.style.pointerEvents = "auto";
     relay.micPrompt = true;
   }
   function micSocket() {
@@ -610,24 +692,44 @@
     micChip();
   }
   function startWebMic(fromGesture) {
-    if (!micWanted() || relay.mic || relay.micStarting) return;
+    if (!micWanted() || relay.mic) return;
     if (liveHeld()) { attachMic(liveHeld()); return; }
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showMicPrompt(true); return; }
-    var ac = relay.ac || audioCtx(!!fromGesture || !IOS || !!relay.unlocked);
-    if (!ac) { showMicPrompt(true); return; }
-    /* iPhone (and iOS Chrome): getUserMedia from a KloudyBar /feed push is not a user gesture and is blocked. Ping this device with a visible tap. */
+    /* A stuck micStarting (getUserMedia never resolved after a pointerdown) must not freeze later taps. */
+    if (relay.micStarting && relay.micStartAt && Date.now() - relay.micStartAt < 2000 && !fromGesture) return;
     if (IOS && !fromGesture) { showMicPrompt(true); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showMicDenied("This browser cannot use the microphone.");
+      return;
+    }
+    var ac = relay.ac || audioCtx(!!fromGesture || !IOS || !!relay.unlocked);
+    /* Call getUserMedia now, in this turn — do not wait on ac.resume(). */
     relay.micStarting = true;
+    relay.micStartAt = Date.now();
     relay.micErr = null;
-    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } }).then(function (stream) {
+    var p;
+    try {
+      p = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+    } catch (err) {
+      relay.micStarting = false;
+      showMicDenied((err && (err.message || err.name)) || "Could not open the mic. Tap to try again.");
+      return;
+    }
+    p.then(function (stream) {
       relay.micStarting = false;
       relay.heldStream = stream;
       if (!micWanted()) { showMicPrompt(false); return; }
       attachMic(stream);
     }).catch(function (err) {
       relay.micStarting = false;
-      relay.micErr = (err && (err.name || err.message)) || "denied";
-      showMicPrompt(true);
+      var name = (err && err.name) || "";
+      relay.micErr = name || ((err && err.message) || "denied");
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        showMicDenied("Mic access was denied. Allow the microphone for this site, then tap again.");
+      } else if (name === "NotFoundError") {
+        showMicDenied("No microphone was found on this device.");
+      } else {
+        showMicDenied("Could not open the mic. Tap to try again.");
+      }
     });
   }
   function stopWebMic(forget) {
@@ -650,7 +752,7 @@
   setInterval(function () {
     botIds().forEach(function (w) {
       var tile = document.getElementById(w + "-tile");
-      if (tile && usesLogoTile(w)) { syncLogoMode(w); return; }
+      if (tile && isLogoBot(w)) { syncLogoMode(w); return; }
       if (tile && tile.classList.contains("relay") && !relayLive(w)) {
         tile.classList.remove("relay");
         var v = document.getElementById(w + "-video");
@@ -784,7 +886,7 @@
     setInterval(function () {
       var ws = relay.ws; if (!ws || ws.readyState !== 1) return;
       var ac = relay.ac, k = relay.keepEl;
-      try { ws.send(JSON.stringify({ type: "diag", v: "kbar7", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
+      try { ws.send(JSON.stringify({ type: "diag", v: "kbar8", ios: IOS, ac: ac ? ac.state : "none", sr: ac ? ac.sampleRate : 0,
         t: ac ? Math.round(ac.currentTime) : 0, sess: navigator.audioSession ? navigator.audioSession.type : "n/a",
         keep: k ? (k.paused ? "paused" : "playing") : "none", chip: !!(document.getElementById("bb-sound-chip") && document.getElementById("bb-sound-chip").style.display !== "none"),
         played: relay.played, peak: { muse: +relay.peak.muse.toFixed(3), dots: +relay.peak.dots.toFixed(3) }, vis: document.visibilityState,

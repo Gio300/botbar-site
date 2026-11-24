@@ -5,6 +5,7 @@
   global.__BOTBAR_DEMO_TAB__ = true;
 
   var BIN = "demo328.bin?v=328e202611230904";
+  var OPEN_BIN = "demo328-open.bin?v=kbar8";
   var BASE = (document.currentScript && document.currentScript.src) || location.href;
   var LOCK_KEY = "botbar.demo328.lock";
   var ENABLED_KEY = "botbar.demo328.enabled";
@@ -204,11 +205,10 @@
     });
 
     /* Emulator show/hide is on KloudyBar only — do not mount a site switch. */
-    document.body.appendChild(tab);
-    document.body.appendChild(promptEl);
+    /* No pull-tab, no passphrase card, no site Emulator switch.
+       KloudyBar's Emulator button calls BotBarDemo.setVisible to show/hide. */
     document.body.appendChild(overlay);
     applyShell();
-    placeSwitch();
   }
 
   function placeSwitch() {
@@ -602,13 +602,29 @@
       mo.observe(pagesRoot, { attributes: true, subtree: true, attributeFilter: ["class"] });
     }
   }
+  function loadOpenPack() {
+    if (lastPayload) return Promise.resolve(lastPayload);
+    return fetch(new URL(OPEN_BIN, BASE).href, { cache: "no-store" }).then(function (res) {
+      if (!res.ok) throw new Error("missing");
+      return res.arrayBuffer();
+    }).then(function (ab) {
+      var buf = new Uint8Array(ab);
+      var payload = parsePayload(buf);
+      lastPayload = payload;
+      return payload;
+    });
+  }
   function setVisible(on) {
-    /* KloudyBar show/hide: no passphrase prompt. Reopen the already-unlocked
-       328 pack if this page has decrypted it once; otherwise just enable. */
+    /* KloudyBar Emulator button: show or hide, no passphrase, no pull-tab. */
     on = !!on;
     if (on) {
       setEnabled(true, false);
-      if (lastPayload && !demoOpen) openDemo(lastPayload);
+      if (demoOpen) return;
+      loadOpenPack().then(function (payload) {
+        if (payload && !demoOpen) openDemo(payload);
+      }).catch(function () {
+        try { console.warn("BotBar emulator pack could not be loaded"); } catch (e) {}
+      });
     } else {
       closeDemo();
       setEnabled(false, false);
